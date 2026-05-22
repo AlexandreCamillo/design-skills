@@ -1,0 +1,29 @@
+{
+  "name": "design-skills",
+  "description": "Superpowers-compatible skills (design-feature, bootstrap-design-system) for the design-feature workflow.",
+  "owner": {
+    "name": "Alexandre Camillo",
+    "email": "acamillo.goncalves@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "design-skills",
+      "description": "Superpowers-compatible skills that orchestrate the full feature workflow from idea-mockup through implementation parity. Composes brainstorming + frontend-design + writing-plans. Soft-depends on markup-cli.",
+      "version": "0.5.0",
+      "source": ".",
+      "author": {
+        "name": "Alexandre Camillo",
+        "email": "acamillo.goncalves@gmail.com"
+      },
+      "homepage": "https://github.com/AlexandreCamillo/design-skills",
+      "repository": "https://github.com/AlexandreCamillo/design-skills",
+      "license": "MIT",
+      "keywords": [
+        "skills",
+        "design-system",
+        "design-feature",
+        "workflow"
+      ]
+    }
+  ]
+}

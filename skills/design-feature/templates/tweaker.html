@@ -1,0 +1,403 @@
+<!-- TWEAKER PANEL — inlined by design-feature into every idea mockup. -->
+<!-- API: window.Tweaker.register({ title, slug, groups, apply(state, root) }). -->
+<!-- Copy button serializes state as { slug, version: 1, choices } JSON. -->
+<style>
+  .mdtk-tweaker {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 999999;
+    min-width: 280px;
+    max-width: 360px;
+    font: 12px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #1f2937;
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+    user-select: none;
+    overflow: hidden;
+  }
+  .mdtk-tweaker[data-collapsed="true"] {
+    min-width: 0;
+    max-width: none;
+    width: auto;
+  }
+  .mdtk-tweaker__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: linear-gradient(180deg, #fafbfc, #f3f4f6);
+    border-bottom: 1px solid #e5e7eb;
+    cursor: grab;
+  }
+  .mdtk-tweaker[data-collapsed="true"] .mdtk-tweaker__header {
+    border-bottom: none;
+    padding: 6px 10px;
+  }
+  .mdtk-tweaker__header:active { cursor: grabbing; }
+  .mdtk-tweaker__title { flex: 1; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mdtk-tweaker__btn {
+    appearance: none;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #4b5563;
+  }
+  .mdtk-tweaker__btn:hover { background: #e5e7eb; }
+  .mdtk-tweaker__body {
+    padding: 8px 10px;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+  .mdtk-tweaker[data-collapsed="true"] .mdtk-tweaker__body { display: none; }
+  .mdtk-tweaker__group { margin: 8px 0; }
+  .mdtk-tweaker__group-name {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #6b7280;
+    margin-bottom: 6px;
+  }
+  .mdtk-tweaker__opt {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 8px;
+    align-items: center;
+    margin: 4px 0;
+  }
+  .mdtk-tweaker__opt-label { color: #374151; }
+  .mdtk-tweaker__segmented {
+    display: inline-flex;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .mdtk-tweaker__segmented button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    padding: 4px 8px;
+    cursor: pointer;
+    font: inherit;
+    color: #4b5563;
+  }
+  .mdtk-tweaker__segmented button[aria-pressed="true"] {
+    background: #1f2937;
+    color: #fff;
+  }
+  .mdtk-tweaker__opt input[type="color"] {
+    width: 32px;
+    height: 24px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    padding: 0;
+  }
+  .mdtk-tweaker__opt input[type="range"] { width: 100%; }
+  .mdtk-tweaker__opt input[type="text"],
+  .mdtk-tweaker__opt select {
+    width: 100%;
+    padding: 3px 6px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font: inherit;
+  }
+  .mdtk-tweaker__flash { color: #16a34a; font-weight: 600; }
+</style>
+
+<div class="mdtk-tweaker" data-mdtk-tweaker data-collapsed="false">
+  <div class="mdtk-tweaker__header" data-mdtk-handle>
+    <span class="mdtk-tweaker__title" data-mdtk-title>🎛 Tweaker</span>
+    <button class="mdtk-tweaker__btn" data-mdtk-copy title="Copy options as JSON">📋</button>
+    <button class="mdtk-tweaker__btn" data-mdtk-toggle title="Minimize">—</button>
+  </div>
+  <div class="mdtk-tweaker__body" data-mdtk-body></div>
+</div>
+
+<script>
+(function () {
+  const VERSION = 1;
+  const root = document.querySelector('[data-mdtk-tweaker]');
+  if (!root) return;
+  const header = root.querySelector('[data-mdtk-handle]');
+  const titleEl = root.querySelector('[data-mdtk-title]');
+  const body = root.querySelector('[data-mdtk-body]');
+  const copyBtn = root.querySelector('[data-mdtk-copy]');
+  const toggleBtn = root.querySelector('[data-mdtk-toggle]');
+
+  const KEY_POS = 'mdtk-tweaker-pos:' + location.pathname;
+  const KEY_COLLAPSED = 'mdtk-tweaker-collapsed:' + location.pathname;
+  const KEY_STATE = 'mdtk-tweaker-state:' + location.pathname;
+
+  function lsGet(key) {
+    try { return localStorage.getItem(key); } catch (e) { return null; }
+  }
+  function lsSet(key, val) {
+    try { localStorage.setItem(key, val); } catch (e) {}
+  }
+
+  let fullTitle = '🎛 Tweaker';
+  let shortTitle = '🎛 T';
+  function applyTitle() {
+    titleEl.textContent = root.dataset.collapsed === 'true' ? shortTitle : fullTitle;
+  }
+
+  const posRaw = lsGet(KEY_POS);
+  if (posRaw) {
+    try {
+      const pos = JSON.parse(posRaw);
+      if (pos) {
+        root.style.left = pos.left + 'px';
+        root.style.top = pos.top + 'px';
+        root.style.right = 'auto';
+      }
+    } catch (e) { /* JSON malformed */ }
+  }
+
+  if (lsGet(KEY_COLLAPSED) === 'true') {
+    root.dataset.collapsed = 'true';
+    toggleBtn.textContent = '+';
+  }
+  applyTitle();
+
+  let dragging = false, offX = 0, offY = 0;
+  let didMove = false;
+  let downAt = 0;
+  function start(e) {
+    if (e.target.closest('button, input, select')) return;
+    dragging = true;
+    didMove = false;
+    downAt = Date.now();
+    const pt = e.touches ? e.touches[0] : e;
+    const rect = root.getBoundingClientRect();
+    offX = pt.clientX - rect.left;
+    offY = pt.clientY - rect.top;
+    document.addEventListener('mousemove', move, { passive: false });
+    document.addEventListener('mouseup', end);
+    document.addEventListener('touchmove', move, { passive: false });
+    document.addEventListener('touchend', end);
+  }
+  function move(e) {
+    if (!dragging) return;
+    e.preventDefault();
+    didMove = true;
+    const pt = e.touches ? e.touches[0] : e;
+    const w = root.offsetWidth, h = root.offsetHeight;
+    const left = Math.max(0, Math.min(window.innerWidth - w, pt.clientX - offX));
+    const top = Math.max(0, Math.min(window.innerHeight - h, pt.clientY - offY));
+    root.style.left = left + 'px';
+    root.style.top = top + 'px';
+    root.style.right = 'auto';
+  }
+  function end() {
+    if (!dragging) return;
+    dragging = false;
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('mouseup', end);
+    document.removeEventListener('touchmove', move);
+    document.removeEventListener('touchend', end);
+    if (didMove) {
+      const rect = root.getBoundingClientRect();
+      lsSet(KEY_POS, JSON.stringify({ left: rect.left, top: rect.top }));
+    } else if (root.dataset.collapsed === 'true' && Date.now() - downAt < 500) {
+      setCollapsed(false);
+    }
+  }
+  header.addEventListener('mousedown', start);
+  header.addEventListener('touchstart', start, { passive: false });
+
+  function setCollapsed(collapsed) {
+    root.dataset.collapsed = String(collapsed);
+    toggleBtn.textContent = collapsed ? '+' : '—';
+    applyTitle();
+    lsSet(KEY_COLLAPSED, String(collapsed));
+  }
+  toggleBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    setCollapsed(root.dataset.collapsed !== 'true');
+  });
+
+  let registered = null;
+  let state = {};
+  const segmentedRefreshers = new Map();
+
+  function render() {
+    if (!registered) return;
+    segmentedRefreshers.clear();
+    body.innerHTML = '';
+    for (const g of registered.groups) {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'mdtk-tweaker__group';
+      const name = document.createElement('div');
+      name.className = 'mdtk-tweaker__group-name';
+      name.textContent = g.name;
+      groupEl.appendChild(name);
+      for (const opt of g.options) {
+        const row = document.createElement('div');
+        row.className = 'mdtk-tweaker__opt';
+        const lbl = document.createElement('div');
+        lbl.className = 'mdtk-tweaker__opt-label';
+        lbl.textContent = opt.label;
+        row.appendChild(lbl);
+        row.appendChild(buildControl(opt));
+        groupEl.appendChild(row);
+      }
+      body.appendChild(groupEl);
+    }
+  }
+
+  function buildControl(opt) {
+    if (opt.type === 'segmented') {
+      const grp = document.createElement('div');
+      grp.className = 'mdtk-tweaker__segmented';
+      const buttons = [];
+      for (const v of opt.values) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = String(v);
+        b.setAttribute('aria-pressed', String(state[opt.id] === v));
+        b.addEventListener('click', () => setOption(opt.id, v));
+        grp.appendChild(b);
+        buttons.push({ btn: b, val: v });
+      }
+      segmentedRefreshers.set(opt.id, () => {
+        for (const { btn, val } of buttons) {
+          btn.setAttribute('aria-pressed', String(state[opt.id] === val));
+        }
+      });
+      return grp;
+    }
+    if (opt.type === 'select') {
+      const sel = document.createElement('select');
+      for (const v of opt.values) {
+        const o = document.createElement('option');
+        o.value = String(v);
+        o.textContent = String(v);
+        if (state[opt.id] === v) o.selected = true;
+        sel.appendChild(o);
+      }
+      sel.addEventListener('change', () => {
+        const restored = opt.values.find((v) => String(v) === sel.value);
+        setOption(opt.id, restored !== undefined ? restored : sel.value);
+      });
+      return sel;
+    }
+    if (opt.type === 'color') {
+      const i = document.createElement('input');
+      i.type = 'color';
+      i.value = state[opt.id];
+      i.addEventListener('input', () => setOption(opt.id, i.value));
+      return i;
+    }
+    if (opt.type === 'range') {
+      const i = document.createElement('input');
+      i.type = 'range';
+      i.min = opt.min ?? 0;
+      i.max = opt.max ?? 100;
+      i.step = opt.step ?? 1;
+      i.value = state[opt.id];
+      i.addEventListener('input', () => setOption(opt.id, Number(i.value)));
+      return i;
+    }
+    if (opt.type === 'text') {
+      const i = document.createElement('input');
+      i.type = 'text';
+      i.value = state[opt.id];
+      i.addEventListener('input', () => setOption(opt.id, i.value));
+      return i;
+    }
+    if (opt.type === 'toggle') {
+      const i = document.createElement('input');
+      i.type = 'checkbox';
+      i.checked = !!state[opt.id];
+      i.addEventListener('change', () => setOption(opt.id, i.checked));
+      return i;
+    }
+    const span = document.createElement('span');
+    span.textContent = '? unsupported type: ' + opt.type;
+    return span;
+  }
+
+  function setOption(id, value) {
+    state[id] = value;
+    lsSet(KEY_STATE, JSON.stringify(state));
+    applyToRoot();
+    const refresh = segmentedRefreshers.get(id);
+    if (refresh) refresh();
+  }
+
+  function findApplyRoot() { return document.querySelector('[data-ds-component]'); }
+
+  function applyToRoot() {
+    const r = findApplyRoot();
+    if (!r || !registered || !registered.apply) return;
+    try { registered.apply(state, r); } catch (e) { console.warn('[Tweaker] apply failed:', e); }
+  }
+
+  window.Tweaker = {
+    register({ title, slug, groups, apply }) {
+      if (registered) {
+        console.warn('[Tweaker] register() called twice; ignoring.');
+        return;
+      }
+      registered = { title, slug, groups, apply };
+      if (title) {
+        fullTitle = '🎛 ' + title;
+        const rest = title.trim();
+        shortTitle = '🎛 ' + (rest.charAt(0).toUpperCase() || 'T');
+      }
+      applyTitle();
+      const defaults = {};
+      for (const g of groups) for (const opt of g.options) defaults[opt.id] = opt.default;
+      let restored = {};
+      const stateRaw = lsGet(KEY_STATE);
+      if (stateRaw) {
+        try { restored = JSON.parse(stateRaw); } catch (e) {}
+      }
+      const knownIds = new Set(Object.keys(defaults));
+      const filtered = {};
+      for (const k of Object.keys(restored)) {
+        if (knownIds.has(k)) filtered[k] = restored[k];
+      }
+      state = Object.assign({}, defaults, filtered);
+      lsSet(KEY_STATE, JSON.stringify(state));
+      render();
+      applyToRoot();
+    },
+  };
+
+  copyBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    if (!registered) {
+      copyBtn.innerHTML = '<span style="color:#dc2626">!</span>';
+      setTimeout(() => { copyBtn.textContent = '📋'; }, 1000);
+      console.warn('[Tweaker] copy clicked before register()');
+      return;
+    }
+    const payload = {
+      slug: registered.slug || '',
+      version: VERSION,
+      choices: state,
+    };
+    const text = JSON.stringify(payload, null, 2);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    const original = copyBtn.textContent;
+    copyBtn.innerHTML = '<span class="mdtk-tweaker__flash">✓</span>';
+    setTimeout(() => { copyBtn.textContent = original; }, 1000);
+  });
+})();
+</script>
