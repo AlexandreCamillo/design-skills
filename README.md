@@ -65,13 +65,19 @@ The skills become discoverable via `activate_skill('design-feature')` and `activ
 
 ### Codex CLI
 
-Codex doesn't have a plugin manager; clone the repo:
+Codex ships a native `skill-installer` skill (from [`openai/skills`](https://github.com/openai/skills)). Tell Codex in chat:
+
+> Use skill-installer to install `design-feature` and `bootstrap-design-system` from `AlexandreCamillo/design-skills` (paths `skills/design-feature` and `skills/bootstrap-design-system`).
+
+Codex resolves the skill-installer, downloads both SKILL.md trees into `~/.codex/skills/`, and they become discoverable on the next restart. To pin a tag, add `--ref v0.5.0` to the request.
+
+Each `SKILL.md` carries a cross-harness reference table that tells the model which Codex equivalents to use for `Read`/`Write`/`Edit`/`Bash` (Codex's native file/shell tools), `Skill` invocation, and subagent dispatch (`spawn_agent`, requires `multi_agent = true` in `~/.codex/config.toml`).
+
+If your Codex version is older and doesn't have `skill-installer`, fall back to a manual clone:
 
 ```bash
 git clone https://github.com/AlexandreCamillo/design-skills ~/.codex/skills/design-skills
 ```
-
-Then in conversations, tell Codex: *"Read `~/.codex/skills/design-skills/skills/design-feature/SKILL.md` and follow it as the active instruction set."* The skill's cross-harness reference table tells the model which Codex equivalents to use for `Read`/`Write`/`Edit`/`Bash` (Codex's native file/shell tools), `Skill` invocation (skills load natively — open the SKILL.md inline), and subagent dispatch (`spawn_agent`, requires `multi_agent = true` in `~/.codex/config.toml`).
 
 ### Chrome MCP setup (any harness)
 
