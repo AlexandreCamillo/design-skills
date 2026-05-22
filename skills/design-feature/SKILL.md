@@ -428,9 +428,9 @@ window.Tweaker.register({
   slug: 'pricing-card',            // baked into copy-JSON output
   groups: [
     { name: 'Layout', options: [
-      { id: 'variant',  label: 'Variant',  type: 'segmented',
+      { id: 'variant',  label: 'Variant',  type: 'radio',
         values: ['A','B','C'], default: 'A' },
-      { id: 'density',  label: 'Density',  type: 'segmented',
+      { id: 'density',  label: 'Density',  type: 'radio',
         values: ['compact','comfortable'], default: 'comfortable' },
     ]},
     { name: 'Color', options: [
@@ -445,7 +445,20 @@ window.Tweaker.register({
 });
 ```
 
-Supported `type`s: `segmented` (one of `values`), `select` (one of `values`), `color`, `range` (with `min`/`max`/`step`), `text`, `toggle`.
+**Supported `type`s** (canonical set — do **not** invent new ones):
+
+| Type | Maps to | Use for |
+|---|---|---|
+| `radio` | radio group | one-of N choices (variant, density, alignment, tone). Default for multi-choice. |
+| `select` | `<select>` dropdown | one-of N when the list is long (>5) or the labels are wordy. Otherwise prefer `radio`. |
+| `toggle` | `<input type="checkbox">` | boolean on/off (shadow, divider, icon-visible). |
+| `range` | `<input type="range">` (slider) | numeric scrub with min/max/step (radius, padding, font-size). The one "showy" control allowed. |
+| `text` | `<input type="text">` | free-text copy (title, subtitle, CTA label). |
+| `color` | `<input type="color">` | accent / surface colors. |
+
+The template ships every type above pre-styled. **Pick from this list and populate the options** — do not add new control types, do not restyle existing ones, do not invent multi-select arrays. Staying inside this set is what keeps the panel on Markup's styleguide without any visual work per feature.
+
+The previous `segmented` type was removed — use `radio` instead (same `values` shape).
 
 The copy-JSON button at the top of the tweaker serializes the current state as:
 
