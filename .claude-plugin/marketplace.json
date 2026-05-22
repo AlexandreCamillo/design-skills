@@ -10,7 +10,7 @@
       "name": "design-skills",
       "description": "Superpowers-compatible skills that orchestrate the full feature workflow from idea-mockup through implementation parity. Composes brainstorming + frontend-design + writing-plans. Soft-depends on markup-cli.",
       "version": "0.5.0",
-      "source": ".",
+      "source": "./",
       "author": {
         "name": "Alexandre Camillo",
         "email": "acamillo.goncalves@gmail.com"
