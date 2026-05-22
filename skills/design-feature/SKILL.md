@@ -460,6 +460,18 @@ The template ships every type above pre-styled. **Pick from this list and popula
 
 The previous `segmented` type was removed — use `radio` instead (same `values` shape).
 
+#### Why the type set is closed
+
+The panel's visual treatment follows the **Markup app styleguide** (dark teal-tinted glass at hue 165°, Manrope + JetBrains Mono, accent-as-typography). Every supported type is pre-styled in `templates/tweaker.html` against those tokens, with the values inlined as literal OKLCH/rgb (the tweaker runs inside arbitrary mockups, so it can't depend on a token sheet being present at runtime).
+
+The closed set is the contract that keeps the panel on-style with zero per-feature design work. If you find yourself wanting a control that isn't in the table:
+
+- **Don't** add a new control type to the template inline, restyle an existing one, or hand-roll markup outside `Tweaker.register`. That drifts the panel off the styleguide.
+- **Do** model the decision as one of the six existing types — most cases fit (e.g., "compact / cozy / roomy" → `radio`; "0-100% scale" → `range`).
+- If the decision genuinely can't be modeled with the six types, surface it to the user and propose adding the type to the template once, so every future mockup benefits.
+
+When the underlying Markup styleguide changes (token values, font choice, motion curves), update the literals in `templates/tweaker.html` — that file is the single source of truth for the panel's visual.
+
 The copy-JSON button at the top of the tweaker serializes the current state as:
 
 ```json
