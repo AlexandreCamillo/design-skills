@@ -132,7 +132,28 @@ Runs **once per feature**, after the capability matrix disclaimer and before Pha
 
 ### 0.1 Detect framework, then tooling
 
-Read `package.json` at cwd. Collect `dependencies` + `devDependencies` into a single set.
+Read `package.json` at cwd.
+
+**Monorepo check (before collecting deps).** Glob `**/package.json` at cwd with depth ≤ 3, excluding any path under `node_modules/`. On Claude Code: `Glob` tool with `pattern: "**/package.json"` then filter out `node_modules`. On Gemini CLI: `glob` tool. On Codex CLI: native glob.
+
+If the glob returns 2+ matches AND the cwd's `package.json` is missing OR has empty `dependencies` and `devDependencies`, prompt the user (PT-BR):
+
+> Detectei múltiplos `package.json` neste repositório (provavelmente um monorepo). O `package.json` da raiz está vazio/ausente, então não consigo deduzir o framework sozinho. Qual subdiretório é o "feature root" pra essa feature?
+>
+>   1. `<path-1>` (deps: `<top-3-deps-or-"vazio">`)
+>   2. `<path-2>` (deps: `<top-3-deps-or-"vazio">`)
+>   …
+>   N. `<path-N>` (deps: `<top-3-deps-or-"vazio">`)
+>
+> Resposta (1-N):
+
+The numbered list enumerates every glob hit, sorted by path depth ascending (shallowest first) then alphabetically. For each entry, read the `package.json` and surface the first 3 keys from `dependencies` (or `"vazio"` if empty) so the user can recognize which package is which.
+
+When the user answers, treat the chosen path's directory as the feature root for the rest of Phase 0: every subsequent file read (`package.json`, agent guidelines, `docs/INDEX.md`, etc.) is relative to that directory, not cwd. Persist the choice into `strategy.json:featureRoot` (relative to repo root) so resume and downstream phases can rebase their reads.
+
+If the glob returns 0 or 1 matches, OR the cwd's `package.json` has non-empty deps, no prompt — the feature root is cwd as before, and `strategy.json:featureRoot` is set to `"."`.
+
+Collect `dependencies` + `devDependencies` from the chosen feature root's `package.json` into a single set.
 
 **Step 1 — Framework detection (in priority order):**
 
