@@ -240,7 +240,15 @@ The picked stack is binding for the rest of the feature. The skill does NOT inst
 
 ### 0.2 Detect project rules
 
-- **Agent guidelines file** — check, in priority order, for `AGENTS.md` → `CLAUDE.md` → `GEMINI.md` at cwd root. Use the **first one present**; ignore the others (their content is usually a copy/symlink). Extract section headers matching `/UI|UX|design|frontend|styling|render/i`. Capture the first 1-2 lines under each matching header for the strategy-prompt context. Don't try to render the whole file — just produce a one-line summary like `"client-side rendering only (AGENTS.md §17)"`, naming whichever file you actually read.
+- **Agent guidelines file** — check, in priority order, for `AGENTS.md` → `CLAUDE.md` → `GEMINI.md` at cwd root. Use the **first one present**; ignore the others (their content is usually a copy/symlink). Extract section headers matching `/UI|UX|design|frontend|styling|render|component|hierarchy|architecture|naming/i`. Capture the first 1-2 lines under each matching header for the strategy-prompt context. Don't try to render the whole file — just produce a one-line summary like `"client-side rendering only (AGENTS.md §17)"`, naming whichever file you actually read.
+
+  **Zero-match fallback.** If the chosen agent-guidelines file exists but **no** header matches the regex above, the file probably uses domain-specific names for UI conventions (or doesn't cover UI at all). Don't silently skip — prompt the user (PT-BR):
+
+  > O arquivo `<AGENTS.md|CLAUDE.md|GEMINI.md>` não tem nenhuma seção que claramente cobre convenções de UI/componente. Quer me dizer convenções relevantes antes de continuar? (ex.: *"todos os botões herdam de `<BaseButton>`"*, *"use BEM strict"*, *"ícones só do `lucide-react`"*)
+  >
+  > Resposta livre (ou "skip" pra continuar sem):
+
+  Capture any non-empty answer under `strategy.json:projectRules.agentRules.userFreeText`. The auto-extracted `summary` stays empty in this branch. `skip` (or empty input) leaves `userFreeText` null and continues.
 - If `docs/INDEX.md` exists → read it. List linked docs whose titles match `/UI|UX|design|frontend|component|style/i`. Don't auto-read those — list them to the user with an offer "want me to read these before proposing strategy?"
 - If neither exists → skip silently. The strategy menu still works; it just has less context.
 
