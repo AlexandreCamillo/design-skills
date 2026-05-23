@@ -745,7 +745,27 @@ Do NOT invoke writing-plans until BOTH of the following are true:
 
    > DS adjustments are first-class plan tasks. If the implementation requires changes to a DS component, include explicit tasks to edit the DS file (following `templates/ds-component-pattern.md`, with the Code API section adapted to the strategy in `.markup-design/scratch/strategy.json`), run `markup-cli check --build` (or the manual structural review when CLI is absent), and commit with `feat(ds): amend <slug> (driven by <reason>)`. Any task that edits a DS file MUST be followed by `markup-cli check --build` in the plan. Do NOT include tasks that update QA sidecars or full-prototype files — those are no longer part of the workflow.
 
-2. **Execute via `subagent-driven-development`** (or `executing-plans` — ask the user). Unlike Phase 1, parallel subagents are useful here because plan tasks usually touch independent files.
+2. **Post-plan checklist (run on the file `writing-plans` just wrote, before invoking execution).** Two heuristic grep-based checks. Both run; surface any flag to the user and wait for explicit confirm-or-revise before advancing to step 3.
+
+   - **Check A — DS-edit task presence.** Grep the tech spec at `docs/superpowers/specs/<date>-<slug>-tech-spec.md` for the substring `docs/design/design-system/`. If at least one match exists, grep the freshly-written plan for tasks whose `Files:` blocks reference a path under `docs/design/design-system/`. If the spec mentions DS paths but the plan has zero DS-edit tasks, print:
+
+     > ⚠ O tech spec referencia arquivos em `docs/design/design-system/`, mas o plano não tem nenhuma tarefa que edita esses arquivos. Confirme se isso é intencional (ex.: a feature só consome o DS sem alterar) ou revise o plano para incluir as edições de DS necessárias.
+
+     Wait for the user to confirm "ok, sem alterações de DS" (or equivalent) or to ask for a revision. If the user asks for a revision, re-invoke `writing-plans` with the spec's DS-path list explicitly enumerated in the seed.
+
+   - **Check B — Test-task precedence (TDD).** Walk the plan's task list top-to-bottom. For each task, inspect both the step descriptions and the `Files:` block. Compute:
+     - `firstTestTaskIndex` = index of the first task whose step descriptions match the regex `/test|spec|tdd/i` (case-insensitive) OR whose `Files:` block lists a path matching `/\b(test|tests|spec|specs|__tests__)\b/i`.
+     - `firstSrcTaskIndex` = index of the first task whose `Files:` block lists a path under the project's code root. The code root is `strategy.json:detected.codeRoot` when set; otherwise fall back to `src/`, then `lib/`, then `app/`, then `apps/`, then `packages/` (first that appears in any task's `Files:` block).
+
+     If `firstSrcTaskIndex < firstTestTaskIndex` (or `firstTestTaskIndex` is unset while `firstSrcTaskIndex` is set), print:
+
+     > ⚠ Test tasks must precede implementation tasks (TDD). O plano tem tarefa de implementação (`<path-do-firstSrcTask>`) antes de qualquer tarefa de teste. Confirme se a feature genuinamente não precisa de testes novos (e justifique) ou revise o plano para incluir as tarefas de teste antes das de implementação.
+
+     Wait for the user to confirm "ok, sem testes novos por <razão>" or to ask for a revision.
+
+   Record the outcome of both checks in `state.json:phase4.postPlanChecklist = { dsTasks: "ok" | "confirmed-no-ds" | "revised", testPrecedence: "ok" | "confirmed-no-tests" | "revised" }`. This is what the Phase 4 gate reads.
+
+3. **Execute via `subagent-driven-development`** (or `executing-plans` — ask the user). Unlike Phase 1, parallel subagents are useful here because plan tasks usually touch independent files.
 
 ### Phase 4 gate
 
