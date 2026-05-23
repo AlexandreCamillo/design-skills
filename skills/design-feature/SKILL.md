@@ -297,7 +297,7 @@ This check runs **before** §0.3 strategy menu so every subsequent write — `st
    > [se tree sujo] ⚠ Working tree tem mudanças não commitadas — recomendo commitar ou stashar antes de A/B.
 
    - **A**: `git checkout -b feature/design-<repo-name>` → continue in same cwd.
-   - **B**: prefer invoking the `using-git-worktrees` sub-skill if available — Claude Code: `Skill: superpowers:using-git-worktrees`; Gemini CLI: `activate_skill('superpowers:using-git-worktrees')`; Codex CLI: read `~/.codex/superpowers/skills/using-git-worktrees/SKILL.md` inline. If the sub-skill is unavailable, fall back to direct shell: `git worktree add ../<repo-name>-design -b feature/design-<repo-name>`. Change cwd to the new worktree path before continuing.
+   - **B**: prefer invoking the `using-git-worktrees` sub-skill if available — Claude Code: `Skill: superpowers:using-git-worktrees`; Gemini CLI: `activate_skill('superpowers:using-git-worktrees')`; Codex CLI: read `~/.codex/superpowers/skills/using-git-worktrees/SKILL.md` inline. If the sub-skill is unavailable, fall back to direct shell: `git worktree add ../<repo-name>-design -b feature/design-<repo-name>`. Change cwd to the new worktree path before continuing. After `cd` into the new worktree, register it: update `~/.markup-design/registry.json` per the §"Worktree registry" write trigger (set `repos[<original-repo-toplevel>].worktrees[<basename-of-worktree-path>] = <new-worktree-abs>`, stamp `schemaVersion: 1`). Print `Registrado worktree em ~/.markup-design/registry.json`.
    - **C**: continue on current branch, print `Continuando em <branch> — não recomendado.`
 
 5. **If current branch is anything else:** print `Executando em \`<branch>\`. ✓` and continue.
