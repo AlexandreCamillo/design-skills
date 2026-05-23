@@ -39,9 +39,13 @@ When the bootstrap completes:
 
 ```
 Bootstrap produces a DRAFT design system from your running app. It is NOT
-finished output. Expect ~70% of components to be usable as-is and ~30% to
-need manual JS porting (drag-and-drop, virtualized lists, multi-step flows,
-async error states are the usual culprits).
+finished output. What to expect:
+
+  · Atoms (button, icon, spinner, badge) usually port cleanly.
+  · Molecules with form inputs port well.
+  · Async loading states, drag-and-drop, virtualized lists, and
+    multi-step flows typically need manual cleanup.
+  · Plan for the unexpected — every project surprises.
 
 For ~25 components and ~7 complex ones, expect ~1 day of wall-clock time:
 3-6h of agent work + 2-3h of your gate-keeping.
