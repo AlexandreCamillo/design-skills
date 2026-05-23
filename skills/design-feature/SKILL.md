@@ -847,6 +847,30 @@ Do NOT declare implementation done until:
 </HARD-GATE>
 ```
 
+### Phase 4 — DS edit scope rule
+
+Phase 4 implementation may touch DS files, but only under a narrow rule. Apply this before opening any DS file for edit during Phase 4:
+
+**Rule.** Adding a new variant or a new state to an existing DS component during Phase 4 is allowed. Changing the visual treatment of an existing variant — anything a user would have signed off on during Phase 1 mockup approval — is not. If the change is in the second category, roll back to Phase 1: re-mockup the affected component, re-promote, re-bake, then return to Phase 4 with a new plan.
+
+**Examples — additive, stay in Phase 4:**
+
+1. The tech spec needs a new `size=xs` variant on the Button component that did not exist when the mockup was approved. The Phase 1 mockup did not show or exercise this size. **OK** — add the variant in Phase 4 as a DS-edit task (per Phase 4 step 1 instruction); run `markup-cli check --build`; commit.
+2. The tech spec needs a new `loading` state on the Form component (spinner over a disabled form) that the Phase 1 mockup did not exercise. **OK** — add the state row to the State decision matrix and add the visual to the all-states grid in Phase 4; the user's Phase 1 approval covered the rest of the form's visuals, which are unchanged.
+
+**Examples — non-additive, roll back to Phase 1:**
+
+1. While implementing the tech spec, you notice the approved Button's `primary` variant looks heavier than the rest of the page and want to lighten its weight or tint. **Roll back.** The user approved `primary`'s exact visual in Phase 1. Re-mockup, re-approve, re-bake. Do not silently re-tweak in Phase 4.
+2. The approved Form layout uses a two-column grid, but during Phase 4 you decide a single-column layout fits the real data better. **Roll back.** Layout is what the user signed off on. Open a Phase 1 cycle to re-mockup the form.
+
+**Heuristic.** If the change affects what a user would have approved in Phase 1, it goes back to Phase 1.
+
+When you detect a non-additive change is needed mid-Phase-4, stop the current plan execution, print to the user:
+
+> ⚠ Mudança detectada que afeta visual já aprovado na Phase 1 (`<componente>`, `<o que muda>`). Por regra de escopo da Phase 4, isso volta pra Phase 1: re-mockup → re-promover → re-bake → novo plano. Pausando a execução do plano atual. Confirma o rollback?
+
+Wait for the user to confirm before re-entering Phase 1.
+
 ## Phase 5 — Visual+behavior QA
 
 Driven by the **State decision matrix table inside the DS file** (no sidecar).
