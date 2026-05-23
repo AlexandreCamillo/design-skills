@@ -50,8 +50,8 @@ finished output. What to expect:
 For ~25 components and ~7 complex ones, expect ~1 day of wall-clock time:
 3-6h of agent work + 2-3h of your gate-keeping.
 
-Components are processed one-by-one with a human approval gate after each.
-You can pause and resume.
+Components are processed in tier order — atoms auto-port, molecules get a
+batch summary review, organisms get a per-item gate. You can pause and resume.
 
 This skill does NOT produce a full-prototype (an assembled page mixing all
 components). It produces individual DS files only. If you want a full-prototype,
