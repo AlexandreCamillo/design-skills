@@ -423,6 +423,44 @@ function validateCompatAlignment() {
   }
 }
 
+function validateFrameworkCoverage(strategies) {
+  if (!strategies || !Array.isArray(strategies.strategies)) return;
+  const designPath = join(SKILLS_DIR, 'design-feature', 'SKILL.md');
+  if (!existsSync(designPath)) return;
+  const skillBody = readFileSync(designPath, 'utf8');
+  // §0.1 Step 1 framework table — the rows shaped as `| <code>marker</code> | <framework> |`.
+  // The complete canonical set is harvested from the markdown table; we just read the second
+  // column. The table starts after `**Step 1 — Framework detection (in priority order):**`
+  // and runs until a paragraph that starts with `If 2+ markers match` (the prose right after
+  // the table).
+  const tableStart = skillBody.indexOf('**Step 1 — Framework detection');
+  if (tableStart < 0) return;
+  const tableEnd = skillBody.indexOf('If 2+ markers match', tableStart);
+  if (tableEnd < 0) return;
+  const tableSlice = skillBody.slice(tableStart, tableEnd);
+  // Row shape: | `marker` | `framework` |  — we capture the second backtick-wrapped token.
+  const FRAMEWORK_ROW_RE = /\|\s*[^|]+\|\s*`([a-z]+)`\s*\|/g;
+  const declared = new Set();
+  let m;
+  while ((m = FRAMEWORK_ROW_RE.exec(tableSlice)) !== null) {
+    const fw = m[1];
+    if (CANONICAL_FRAMEWORKS.has(fw)) declared.add(fw);
+  }
+  const byFw = new Map();
+  for (const s of strategies.strategies) {
+    if (!s.framework) continue;
+    byFw.set(s.framework, (byFw.get(s.framework) || 0) + 1);
+  }
+  for (const fw of declared) {
+    if (!byFw.has(fw) || byFw.get(fw) === 0) {
+      issues.push({
+        skill: 'design-feature',
+        message: `framework "${fw}" is listed in §0.1 but has zero strategies in templates/strategies.json`,
+      });
+    }
+  }
+}
+
 const skills = readdirSync(SKILLS_DIR);
 for (const s of skills) {
   validate(s);
@@ -434,6 +472,7 @@ validateStrategyCrossReferences(strategiesData);
 validateGeneratedTemplateInSync();
 validateCrossReferences();
 validateCompatAlignment();
+validateFrameworkCoverage(strategiesData);
 
 if (issues.length === 0) {
   console.log(`✓ Validated ${skills.length} skill(s); no issues.`);
