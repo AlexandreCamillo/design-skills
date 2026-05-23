@@ -306,10 +306,7 @@ For each component (in inventory tier order):
    - For each interaction with a discernible state (hover, focus, disabled, loading, error, success, expanded, etc.), append a row to **§5 State decision matrix**: state · trigger · visual · aria.
    - For each interaction's runtime contract, append a bullet to **§8 Behavior**.
    - If the component has fewer than 3 states by the end of porting, the §5 matrix is omitted (it's not required by the bundled template at that count). §8 is still populated.
-4. **Run QA via Chrome MCP** against both the DS file (`file://`) and the live route. Scenarios derive from **§5 State decision matrix** of the DS file (same approach as `design-feature` Phase 5):
-   - Open both targets in separate Chrome MCP tabs in parallel (independent URLs).
-   - For each matrix row: apply the trigger in both tabs in parallel, capture both screenshots in one step, then report visual / DOM-state delta.
-   - If §5 is absent (fewer than 3 states), fall back to a single "snapshot in seedAction state and visual diff" — capture both targets and screenshot-diff. Tell the user: "automated interaction QA skipped — add more `seedActions` if you want broader coverage."
+4. **Run QA via Chrome MCP** against both the DS file (`file://`) and the live route. The QA contract is inherited from `design-feature` § "Phase 5 — Visual+behavior QA" — same auto-sweep (F1), same forced `Cause: …` diagnosis (F2), same `state.json:chromeMcp.<capability>` tool-name references (F3), and same screenshot persistence to `.markup-design/qa/<slug>/<YYYY-MM-DD-HHMMSS>/` (F4). Scenarios derive from §5 State decision matrix of the DS file. If §5 is absent (fewer than 3 states), fall back to a single "snapshot in seedAction state and visual diff" — capture both targets and screenshot-diff into the same run folder. Tell the user: "automated interaction QA skipped — add more `seedActions` if you want broader coverage."
 5. **Compute port-status mechanically from QA pass rate, then prompt only for what's left to humans.**
 
    After the QA run in step 4, compute:
