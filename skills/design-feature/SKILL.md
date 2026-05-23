@@ -1134,6 +1134,55 @@ Diga "QA passes" quando estiver satisfeito; "QA fails" + descreva o drift.
 
 **`branchCheck` lives only in `strategy.json`, not `state.json`.** Rationale: the §0.2.5 branch decision is repo-wide and persistent across features (one strategy → N features in the same worktree). Duplicating it per-feature would create two sources of truth for the same fact. Per-feature `state.json` reads `strategy.json:branchCheck` on resume (see §0.6 Branch-check reuse).
 
+## Worktree registry
+
+`~/.markup-design/registry.json` is a per-user index of design worktrees created by §0.2.5 Option B across all repos. It lets the skill surface in-flight features that live in a sibling worktree (the user may have `cd`'d into the main repo by accident and forgotten that work-in-progress lives next door).
+
+Schema:
+
+```json
+{
+  "schemaVersion": 1,
+  "repos": {
+    "/abs/path/to/repo": {
+      "worktrees": {
+        "<slug>": "/abs/path/to/repo-design"
+      }
+    }
+  }
+}
+```
+
+- `<slug>` is the basename of the worktree path (typically `<repo-name>-design`). One repo can have multiple entries if the user re-ran §0.2.5 from a different angle, but in practice it's one.
+- Missing file or unreadable JSON ⇒ treat as `{ "schemaVersion": 1, "repos": {} }`. Do not crash.
+- Missing `schemaVersion` ⇒ migrate inline (treat as version `0`, then write back with `1` on the next mutation). See `docs/SCHEMA-CHANGELOG.md`.
+
+**Write trigger.** §0.2.5 Option B (user picked "criar worktree em `../<repo-name>-design`"). After `git worktree add` succeeds and cwd is changed:
+
+1. Read `~/.markup-design/registry.json` (handle missing file).
+2. Resolve `<repo-root-abs>` = `git rev-parse --show-toplevel` of the *original* repo (the source of the worktree, not the new worktree itself). Worktrees share the same `.git/` parent; the original repo's toplevel is the stable key.
+3. Set `repos[<repo-root-abs>].worktrees[<slug>] = <worktree-abs-path>` (where `<slug>` is the basename of the new worktree path).
+4. Write back with `schemaVersion: 1`. Create `~/.markup-design/` if absent.
+5. Print (PT-BR): `Registrado worktree em ~/.markup-design/registry.json`.
+
+**Read trigger.** Skill start, alongside the local-cwd resume offer (see §"Resuming an in-flight feature"). For the current repo (`git rev-parse --show-toplevel`):
+
+1. Read `~/.markup-design/registry.json` (handle missing).
+2. Look up `repos[<current-repo-toplevel>].worktrees`.
+3. For each registered worktree path, check whether `<worktree>/.markup-design/scratch/*/state.json` files exist. List them under a header (PT-BR):
+
+   ```
+   Features em outros worktrees deste repo:
+     - <slug-a> em <worktree-path> (phase: phase-2-promote)
+     - <slug-b> em <worktree-path> (phase: phase-4-execute)
+
+   Pra retomar uma delas, faça `cd <worktree-path>` e re-invoque a skill.
+   ```
+
+4. If the registry entry points at a path that no longer exists (`!fs.existsSync`), print: `⚠ worktree <path> registrado mas não encontrado — removendo do registry` and prune the entry on the next write.
+
+**Why this is per-user, not per-repo.** Multiple repos may share `~/.markup-design/` for cache/registry purposes (consistent with the existing `.markup-design/` per-repo scratch convention — different files, same prefix). The registry is intentionally outside the repo so it survives `rm -rf <repo>`.
+
 ## Resuming an in-flight feature
 
 On invocation, list any `.markup-design/scratch/*/state.json` and offer to resume. On resume:
