@@ -633,6 +633,10 @@ The copy-JSON button at the top of the tweaker serializes the current state as:
 { "slug": "<slug>", "version": 1, "choices": { ... } }
 ```
 
+### Multi-component features
+
+O tweaker é vinculado a um único `data-ds-component`. Se sua feature combina N componentes (filtro + lista, sidebar + main, etc.), trate como N features encadeadas — uma passada do skill por componente, na ordem em que dependem. O tech spec da Phase 3 amarra a integração entre eles.
+
 ### Phase 1 hosting — how the user opens the mockup
 
 #### `[se Markup online]` Upload to Markup
