@@ -158,7 +158,7 @@ If 2+ markers match (e.g., `react` + `jquery` in a legacy migration), prompt the
 | `vue` | `vuetify`, `naive-ui`, `element-plus`, `primevue`, `quasar`, `@nuxt/ui` | `vee-validate`, `@vuelidate/core`, `@formkit/vue` | `tailwindcss`, `sass`/`scss` | `@vueuse/motion`, `gsap` | `@iconify/vue`, `lucide-vue-next`, `@phosphor-icons/vue` |
 | `svelte` | `@skeletonlabs/skeleton`, `flowbite-svelte`, `sveltestrap`, `bits-ui`, `@melt-ui/svelte` | `sveltekit-superforms`, `felte`, `formsnap` | `tailwindcss`, `sass`/`scss` | (svelte built-ins: `svelte/animate`, `svelte/motion`) | `lucide-svelte`, `@iconify/svelte` |
 | `angular` | `@angular/material`, `primeng`, `@ng-bootstrap/ng-bootstrap`, `@taiga-ui/core`, `@ionic/angular` | (built-in: `@angular/forms`) | `tailwindcss`, `sass`/`scss` | (built-in: `@angular/animations`) | `@angular/material/icon`, `@iconify/angular` |
-| `solid` | `@kobalte/core`, `@hope-ui/solid`, `solid-ui` | `@modular-forms/solid` | `tailwindcss`, `solid-styled-components` | (Solid transitions built-in) | `solid-icons`, `@iconify-icon/solid` |
+| `solid` | `@kobalte/core`, `@hope-ui/solid`, `@corvu/text-field` | `@modular-forms/solid` | `tailwindcss`, `solid-styled-components` | (Solid transitions built-in) | `solid-icons`, `@iconify-icon/solid` |
 | `jquery` | `jquery-ui`, `bootstrap`, `foundation-sites`, `semantic-ui` | `jquery-validation`, `parsleyjs` | `bootstrap`, `foundation-sites`, plain CSS, `sass`/`scss` | (`jQuery.animate`, `gsap`) | `font-awesome`, Bootstrap icons |
 | `vanilla` | (nenhum esperado) | (native `<form>` validation) | `tailwindcss` (se houver), plain CSS, `sass`/`scss` | (CSS animations, Web Animations API) | `font-awesome`, custom SVG |
 
