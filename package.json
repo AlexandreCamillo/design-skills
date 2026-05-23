@@ -4,6 +4,7 @@
   "description": "Superpowers-compatible skills for the design-feature workflow (dev-only package.json — distribution is the git repo).",
   "type": "module",
   "scripts": {
+    "build:template": "node scripts/build-template.mjs",
     "test": "node validate.mjs",
     "validate": "node validate.mjs"
   },
