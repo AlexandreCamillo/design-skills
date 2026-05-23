@@ -8,6 +8,8 @@ compat:
 
 # Bootstrap Design System
 
+> **Convenção de idioma:** strings printadas/prompted ao usuário → PT-BR. Instruções ao agente → English.
+
 This skill is a **one-shot bootstrap** that produces a draft Design System from an existing application's running UI. Run it once per project, before the first use of the `design-feature` skill.
 
 ## Cross-harness tool reference
