@@ -191,8 +191,37 @@ For each item, Chrome MCP performs:
 1. Navigate to `route`.
 2. Run each `seedAction`.
 3. Capture:
-   - **Subtree HTML + Computed CSS in one "run JavaScript" call** (the Chrome MCP server's `javascript_tool` / `evaluate_script` tool) — return a single JSON object `{ html: document.querySelector(selector).outerHTML, styles: <recursive getComputedStyle walk> }`. The two captures are independent; batching saves one Chrome MCP round-trip per component.
+   - **Subtree HTML + Computed CSS + Body inherited styles in one "run JavaScript" call** (the Chrome MCP server's `javascript_tool` / `evaluate_script` tool) — return a single JSON object:
+
+     ```js
+     {
+       html: document.querySelector(selector).outerHTML,
+       styles: <recursive getComputedStyle walk on the subtree>,
+       bodyInherited: pick(getComputedStyle(document.body), [
+         "font-family", "font-size", "line-height", "color",
+         "background-color", "font-weight", "letter-spacing", "word-spacing"
+       ])
+     }
+     ```
+
+     The three captures are independent; batching saves Chrome MCP round-trips. The `bodyInherited` block feeds step 3a's `:root` reset (see below).
    - **Screenshot** of the bounding box (save to `.markup-design/bootstrap/screenshots/<slug>.png`).
+3a. **Emit `:root` inherited-style reset.** Convert the `bodyInherited` map into a `:root { … }` block at the top of the DS file's `<style>`:
+
+   ```css
+   :root {
+     font-family: <captured>;
+     font-size: <captured>;
+     line-height: <captured>;
+     color: <captured>;
+     background-color: <captured>;
+     font-weight: <captured>;
+     letter-spacing: <captured>;
+     word-spacing: <captured>;
+   }
+   ```
+
+   This catches **default inheritance** from the running app (so the DS file renders with the same baseline as the live route). It does NOT capture specific overrides on descendant elements — those still need manual cleanup. If a declaration's value is the browser default (e.g., `color: rgb(0, 0, 0)` and the app explicitly sets only one of the eight), prefer to omit that line rather than bake a default into the reset. Document the reset in §7 (Anatomy) with the note: *"baseline herdado capturado do `<body>` da rota fonte; pode precisar de limpeza manual."*
 4. **CSS rewrite pass.** Replace each runtime hash class (e.g., `.css-1a2b3c`) with a deterministic BEM name derived from the slug plus the most-semantic class identifier in the JSX source (`.ds-<slug>__btn-primary`). For tokens (frequent literal values like `#ffffff`, `16px`), match against the project's `tailwind.config` or `tokens.css` and emit the variable reference (`var(--space-md)`).
 5. **Write `docs/design/design-system/NN-<slug>.html`** following `templates/ds-component-pattern.md`:
    - Required sections present: §1 (All-states grid), §4 (Code API), §7 (Anatomy), §8 (Behavior).
