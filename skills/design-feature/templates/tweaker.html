@@ -266,6 +266,18 @@
 
 <script>
 (function () {
+  // Tweaker JSON schema version.
+  //
+  // Forward/backward-compat policy (enforced by the design-feature skill at the
+  // Phase 1 approval gate):
+  //   - Pasted JSON with `version > VERSION` → skill refuses with
+  //     "tweaker template newer than skill, upgrade design-skills".
+  //   - Pasted JSON with `version < VERSION` → skill refuses with
+  //     "tweaker template older than skill, regenerate the mockup".
+  //
+  // Bump VERSION whenever the shape of the emitted payload changes
+  // (`{ slug, version, choices }`). Bump the matching gate check in
+  // skills/design-feature/SKILL.md §"Phase 1 approval gate" together.
   const VERSION = 1;
 
   // VSCode Codicons (MIT) — names match react-icons/vsc (VscSettingsGear, VscCopy, etc.).
@@ -521,6 +533,31 @@
     try { registered.apply(state, r); } catch (e) { console.warn('[Tweaker] apply failed:', e); }
   }
 
+  /**
+   * Tweaker.register({ title, slug, groups, apply })
+   *
+   * `apply(state, root)` contract — STRICT.
+   *
+   * The body of `apply` MUST be limited to direct assignments on `root`:
+   *   - attribute writes:  `root.dataset.<id> = state.<id>` / `root.setAttribute(...)`
+   *   - inline-style sets: `root.style.setProperty('--<token>', state.<id>)`
+   *   - class toggles:     `root.classList.add/remove/toggle(state.<id>)`
+   *
+   * That is the entire allowed vocabulary. The function MUST NOT:
+   *   - call `querySelector` / `querySelectorAll` / `getElementById`
+   *   - mutate children (no `appendChild`, `removeChild`, `innerHTML`, `textContent`)
+   *   - branch on state (no `if`, no ternary that picks between DOM ops)
+   *   - call out to libraries (no jQuery, no fetch, no async)
+   *
+   * Rationale: this restriction is what makes Phase 2 bake mechanical. The promote
+   * step converts each assignment into a literal attribute on the rendered HTML —
+   * conditionals or child mutations cannot be statically baked, so they would
+   * silently leak design choices past the Phase 1 gate.
+   *
+   * If a decision can't be expressed in this vocabulary, the decision belongs in
+   * the markup itself (model it as a variant via `data-variant="A|B|C"` and let
+   * CSS branch).
+   */
   window.Tweaker = {
     register({ title, slug, groups, apply }) {
       if (registered) {
