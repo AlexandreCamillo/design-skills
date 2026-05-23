@@ -939,22 +939,92 @@ Driven by the **State decision matrix table inside the DS file** (no sidecar).
 
 ### When Chrome MCP is available
 
-(Chrome MCP tools are referenced below by their **capability** — the actual tool name depends on the registered server and harness; see § "Chrome MCP across harnesses" at the top of this file.)
+(All Chrome MCP tool calls below reference the resolved tool names in `state.json:chromeMcp.<capability>` — see § "Chrome MCP tool resolution" at the top of this file for how those names get computed once at skill start. Do **not** branch by server name in any step below.)
+
+**Pre-run setup.** Compute the run folder and create it:
+
+- `<slug>` = feature slug from `state.json:slug`.
+- `<run-id>` = current local time as `YYYY-MM-DD-HHMMSS` (e.g., `2026-05-23-141207`).
+- `<run-folder>` = `.markup-design/qa/<slug>/<run-id>/` (relative to repo root).
+- `mkdir -p <run-folder>` via the harness's shell tool.
+- Write the relative path to `state.json:qaRun.folder` and initialize `state.json:qaRun = { folder, scenarios: [], discoveredStates: [], deltas: [] }`.
 
 1. **Start the dev server.** Read `.markup-design/connection.json` → `devServer.command` and `devServer.url`. Run the command in the background (Claude Code: `Bash` with `run_in_background: true`; Gemini CLI / Codex CLI: native shell with `&` + log file); poll the URL until it responds.
-2. **For each affected DS component:** open two Chrome MCP tabs in parallel (the two URLs are independent):
+
+2. **For each affected DS component:** open two Chrome MCP tabs in parallel (the two URLs are independent), using `state.json:chromeMcp.navigate`:
    - Live route: `<devServer.url>/<feature-path>`
    - DS reference: `file://<repo>/docs/design/design-system/NN-<slug>.html`
-3. **Extract scenarios from the State decision matrix:**
-   - Parse the `<table class="matrix">` inside the DS HTML (simple regex on the file contents, **or** evaluate JS against the DS tab using the registered Chrome MCP server's "evaluate / run JavaScript" tool — `mcp__claude-in-chrome__javascript_tool` on Claude+claude-in-chrome, `evaluate_script` on `chrome-devtools-mcp` regardless of harness).
+
+3. **Matrix-driven QA — extract scenarios from the State decision matrix:**
+   - Parse the `<table class="matrix">` inside the DS HTML (simple regex on the file contents, **or** call `state.json:chromeMcp.evaluateJs` against the DS tab to query the DOM).
    - Each row → one scenario: `name = state column`, `trigger = trigger column`, `expectedVisual = visual column`, `expectedAria = aria column`.
    - For each scenario:
-     - Apply the trigger on the live route via Chrome MCP (click, focus, type, hover — infer from the trigger text; if unclear, mark `manual: <description>` and report).
+     - Apply the trigger on the live route via the appropriate `state.json:chromeMcp.<click|hover|focus|type>` (infer from the trigger text; if unclear, mark `manual: <description>` and report).
      - Apply the same trigger on the DS file (typically a "Replay" button in the "Per-state deep dive" section, if present; otherwise visual observation from the all-states grid).
-     - Screenshot both. Report visual or DOM-state delta.
-4. **Report drift.** For each delta:
-   - "DS canonical → fix code" (default): edit code to match. Re-run.
-   - "Implementation revealed DS bug → fix DS" (rare): edit the DS file (following the bundled template), run `markup-cli check --build`. No `upload-prototype`. No QA sidecar.
+     - Call `state.json:chromeMcp.screenshot` on both tabs. Save the bytes to `<run-folder>/<scenario>-live.png` and `<run-folder>/<scenario>-ds.png`.
+     - Append the scenario name to `state.json:qaRun.scenarios` (two entries: `<scenario>-live` and `<scenario>-ds`).
+     - Report visual or DOM-state delta.
+
+4. **Automatic state sweep (F1 — runs after matrix-driven QA).** This catches states the matrix author forgot to enumerate.
+
+   **Opt-out:** when the environment variable `MARKUP_QA_SWEEP` is set to `0` (read it via the harness's shell tool, e.g., `printenv MARKUP_QA_SWEEP`), skip this whole step. Print to the user: `Auto-sweep desativado (MARKUP_QA_SWEEP=0).` and proceed to step 5. Default behavior (variable unset or any value other than `0`): run the sweep.
+
+   On the **live route tab only**, call `state.json:chromeMcp.evaluateJs` with a script that iterates every interactive element matching this selector set and reports the elements found:
+
+   - `[role=button]`
+   - `input`
+   - `select`
+   - `[tabindex]`
+   - `[aria-haspopup]`
+   - `[data-state]`
+
+   For each element found, trigger hover, then focus, then click (in that order) via `state.json:chromeMcp.<hover|focus|click>`, screenshotting after each interaction with names `<element-id-or-index>-<hover|focus|click>-live.png` saved under `<run-folder>`. For each interaction whose resulting visual state was **not** covered by any matrix row in step 3, append a "discovered state" entry to `state.json:qaRun.discoveredStates` as:
+
+   ```
+   <element-selector> · <interaction> · <observed-visual-summary>
+   ```
+
+   The summary is a one-line free-text description the agent writes after looking at the captured screenshot (e.g., "button background lightens, no aria change"). Surface the list of discovered states to the user in the Phase 5 summary (step 6 below).
+
+5. **Forced diagnosis on every delta (F2).** For each delta — whether from matrix-driven QA (step 3) or auto-sweep (step 4) — the agent MUST write a one-line `Cause: …` sentence into `state.json:qaRun.deltas` **before** choosing "fix code" or "fix DS". Self-prompt template (write this prompt to yourself, in your reasoning, before invoking any edit):
+
+   ```
+   Delta encontrado em <scenario>:
+     Live:     <observed>
+     DS:       <expected>
+     Cause: ___________________________________________
+            (uma frase: por que o live diverge do DS? Ex.: "live aplica
+            box-shadow do antd default; DS não define shadow no estado hover.")
+
+   Decisão (mecânica a partir da causa):
+     - Se a causa é uma propriedade que o DS cobre e o código não respeita →
+       fix code (default).
+     - Se a causa é uma propriedade que o código aplica e o DS não documenta →
+       fix DS (raro; segue o template bundled, roda markup-cli check --build).
+   ```
+
+   Append the `{ scenario, cause, decision }` triplet to `state.json:qaRun.deltas` then perform the edit. Do **not** edit without the `cause` line written first — this is the F2 gate.
+
+6. **Phase 5 summary — print to the user.** After all matrix-driven scenarios + auto-sweep + diagnosis are recorded, print:
+
+   ```
+   Phase 5 QA — <slug>
+
+     Run folder:           <run-folder>          (screenshots: <scenario>-{live,ds}.png)
+     Matrix scenarios:     <N> covered
+     Auto-sweep:           <M> elementos varridos, <K> discovered states
+     Deltas:               <D> total → <D-fixed-code> code edits, <D-fixed-ds> DS edits, <D-exception> exceções
+
+   Discovered states (não estavam na matrix):
+     <element-selector> · <interaction> · <observed-visual-summary>
+     ...
+
+   Deltas resolvidos:
+     <scenario> · Cause: <one-liner> · Decisão: <fix code|fix DS|exception>
+     ...
+   ```
+
+   The `<run-folder>` is printed as the relative path from repo root so the user can `ls` it directly.
 
 ### Phase 5 gate
 
