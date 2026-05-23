@@ -713,6 +713,17 @@ When the user approves:
    - Keep the script as an IIFE writing only to `window.DS.<slug>`.
    - Set front-matter `js: ported` (unchanged from previous behavior).
 
+   **Reformat checklist (verify before declaring Phase 2.3 done):**
+
+   The bundled template (`templates/ds-component-pattern.md` §3) requires sections 1, 4, 7, 8 in every DS file. After reformat, confirm each:
+
+   - [ ] **§1 All-states grid** — the file contains at least one `.row-states` block with ≥1 cell (`<div class="state">…</div>` or equivalent labeled cell). If absent, the file is missing the headline preview — reformat is incomplete.
+   - [ ] **§4 Code API** — the `pre.api` block exists AND its text content is non-empty (not just whitespace). An empty Code API means the strategy adaptation failed silently.
+   - [ ] **§7 Anatomy** — the file contains a `dl.tokens` element listing the component's CSS tokens. Missing `dl.tokens` means the anatomy section was stripped during reformat.
+   - [ ] **§8 Behavior** — at least one `<ul>` (or `<ol>`) under a section/header titled "Behavior" with ≥1 `<li>`. An empty Behavior section means runtime contract was not transcribed.
+
+   If any item fails, **do not advance to step 4** (`sync-index`). Fix the reformat and re-run the checklist. The Phase 2 → 3 gate also blocks on this checklist (see "Phase 2 gate" below).
+
 4. **`[se CLI]`** `markup-cli sync-index`.
 
    **`[manual fallback]`** Tell the user the DS file is on disk and the index is stale; offer to re-run this step later if they install the CLI.
@@ -734,6 +745,8 @@ When the user approves:
 Do NOT invoke brainstorming for tech spec until:
   - markup-cli check --build exited 0 (or manual structural review confirmed by user
     if CLI absent), AND
+  - The Phase 2.3 reformat checklist passed (§1 has ≥1 grid cell, §4 snippet is
+    non-empty, §7 has dl.tokens, §8 has ≥1 bullet), AND
   - The DS file has been committed.
 </HARD-GATE>
 ```
