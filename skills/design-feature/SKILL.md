@@ -232,53 +232,17 @@ The menu is dynamically generated based on the detected framework and ecosystem 
 3. For each detected ecosystem UI lib in the framework's column, add one canonical strategy option. If a matching form lib is also detected, add a second option that combines them.
 4. If only Tailwind is detected (no UI lib): add `Headless + Tailwind utilities` ahead of the vanilla baseline.
 
-Strategy IDs are framework-prefixed for uniqueness and clarity. Canonical IDs:
+**Strategies live in `templates/strategies.json`** (relative to this SKILL.md). That file is the single source of truth for `id`, `framework`, `label`, detection `markers`, the Code-API `adaptation` text (also shown in §6 of the bundled template), and the `canonicalSnippet` (also shown in §9 of the bundled template). Never hand-edit the strategy list anywhere else — `templates/ds-component-pattern.md` is regenerated from `strategies.json` via `node scripts/build-template.mjs`.
 
-| Framework | Label | Strategy ID |
-|---|---|---|
-| `react` | antd ao máximo | `react-antd-max` |
-| `react` | antd visual + react-hook-form | `react-antd-rhf` |
-| `react` | Compor primitives @radix-ui | `react-radix-primitives` |
-| `react` | MUI primitives nativamente | `react-mui-max` |
-| `react` | MUI visual + react-hook-form | `react-mui-rhf` |
-| `react` | Chakra primitives | `react-chakra-max` |
-| `react` | Mantine primitives | `react-mantine-max` |
-| `react` | Headless UI + Tailwind | `react-headlessui-tailwind` |
-| `react` | react-bootstrap | `react-bootstrap-max` |
-| `react` | Tailwind only (sem UI lib) | `react-vanilla-tailwind` |
-| `react` | Native HTML/JSX + CSS | `react-vanilla` |
-| `vue` | Vuetify ao máximo | `vue-vuetify-max` |
-| `vue` | Vuetify + vee-validate | `vue-vuetify-vee` |
-| `vue` | Element Plus | `vue-element-plus-max` |
-| `vue` | Naive UI | `vue-naive-max` |
-| `vue` | PrimeVue | `vue-primevue-max` |
-| `vue` | Quasar | `vue-quasar-max` |
-| `vue` | Tailwind only | `vue-vanilla-tailwind` |
-| `vue` | Native SFC + CSS | `vue-vanilla` |
-| `svelte` | Skeleton (Tailwind-based) | `svelte-skeleton-max` |
-| `svelte` | Flowbite Svelte | `svelte-flowbite-max` |
-| `svelte` | Sveltestrap (Bootstrap) | `svelte-sveltestrap-max` |
-| `svelte` | Melt UI + Tailwind | `svelte-melt-tailwind` |
-| `svelte` | Tailwind only | `svelte-vanilla-tailwind` |
-| `svelte` | Native .svelte + CSS | `svelte-vanilla` |
-| `angular` | Angular Material | `angular-material-max` |
-| `angular` | PrimeNG | `angular-primeng-max` |
-| `angular` | NG Bootstrap | `angular-ngbootstrap-max` |
-| `angular` | Taiga UI | `angular-taiga-max` |
-| `angular` | Tailwind only | `angular-vanilla-tailwind` |
-| `angular` | Native template + CSS | `angular-vanilla` |
-| `solid` | Kobalte + Tailwind | `solid-kobalte-tailwind` |
-| `solid` | Hope UI | `solid-hope-max` |
-| `solid` | Tailwind only | `solid-vanilla-tailwind` |
-| `solid` | Native JSX + CSS | `solid-vanilla` |
-| `jquery` | jQuery UI + Bootstrap | `jquery-ui-bootstrap` |
-| `jquery` | Bootstrap + jQuery (sem jQuery UI) | `jquery-bootstrap-max` |
-| `jquery` | jQuery puro + CSS | `jquery-vanilla` |
-| `vanilla` | HTML + Tailwind | `vanilla-html-tailwind` |
-| `vanilla` | HTML + plain CSS | `vanilla-html` |
-| (any) | Outro (free-text) | `custom` |
+To compose the menu for the current invocation:
 
-For each invocation, only the rows whose framework matches `detected.framework` (plus the `(any)` row) are presented to the user. The menu typically shows 3-5 numbered options.
+1. Read `templates/strategies.json` (relative to this SKILL.md).
+2. Filter `strategies[]` to entries whose `framework` equals `detected.framework`.
+3. Apply construction rules 1-4 above (vanilla baseline second-to-last, `Outro (descreva)` last, dedup by detected UI/form lib markers via each entry's `markers.ui` / `markers.form`).
+4. Render each filtered entry as one numbered menu line: `<N>. <label>`.
+5. Always append `Outro (descreva)` as the last numbered option, with strategy ID `custom` (the `custom` ID is a code-level special case — it is intentionally NOT present in `strategies.json`).
+
+The user-facing menu format (numbered list + `Resposta (1-N):` prompt) does NOT change — only its data source. The menu typically shows 3-5 numbered options.
 
 ### 0.4 Present the menu
 
