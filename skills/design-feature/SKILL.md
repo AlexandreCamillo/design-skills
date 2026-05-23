@@ -684,6 +684,7 @@ When the user approves:
    - Once all assignments are baked, delete the `apply` function definition (it is dead code without the tweaker).
 
 3. **Reformat DS file to follow the bundled pattern** (template-driven):
+   - **Preserve the attributes baked in step 2.2.** The component root element gained `data-*`, inline `style`, and/or `class` values during baking. These literals encode the user-approved choices and MUST survive the reformat. When restructuring the markup, move siblings/children around the root — never strip or rewrite the root's attributes. If the reformat genuinely needs a new root element (rare), copy the baked `data-*`, `style`, and `class` values onto the new root verbatim before deleting the old one.
    - In parallel: read `templates/ds-component-pattern.md` end-to-end (path relative to this SKILL.md) and read `.markup-design/scratch/strategy.json` to recover `framework` and `chosen`.
    - Restructure the DS file content to have the required sections (1, 4, 7, 8) and applicable optional sections (2, 3, 5, 6) as defined in the bundled template.
    - Component implemented as a single CSS recipe with state variants via `data-attrs`.
@@ -852,6 +853,7 @@ Diga "QA passes" quando estiver satisfeito; "QA fails" + descreva o drift.
 - Never advance a phase without satisfying its `<HARD-GATE>`.
 - Never modify `src/` during Phase 1-2.
 - Never modify DS files during Phase 3.
+- During Phase 2.3, the component root's `data-*`, inline `style`, and `class` attributes set during 2.2 baking MUST be preserved on the new root element. Reformat moves markup around the root, never strips it.
 - Always run `markup-cli check --build` before declaring Phase 2 done (or the manual structural review when CLI is absent). Phase 4 completion is gated by `verification-before-completion` AND, if any DS file was edited during Phase 4, by `markup-cli check --build` as well — DS edits never ship un-validated.
 - Never create Markup folders/projects without user approval.
 - The bundled tweaker template at `templates/tweaker.html` is the single source of truth — never regenerate it per feature; only Read+inline.
