@@ -242,7 +242,7 @@ Antes de prosseguir, escolha o stack que esse projeto vai adotar:
   5. Solid
   6. jQuery
   7. Vanilla (HTML + CSS puro, sem framework JS)
-  8. Outro (descreva)
+  8. Outro stack (descreva)
 
 Resposta (1-8):
 ```
@@ -250,7 +250,7 @@ Resposta (1-8):
 Record the answer:
 
 - **Options 1-7:** set top-level `framework` to the canonical key (`react`, `vue`, `svelte`, `angular`, `solid`, `jquery`, or `vanilla`). Set `detected.framework = "<canonical>@(none)"` — the `@(none)` suffix marks the version slot as "user-picked, no `package.json` evidence yet", to distinguish from the auto-detection path that fills `react@18.3.1` etc. Set `bootstrappedFromEmpty: true` in the `strategy.json` payload (see 0.5).
-- **Option 8 ("Outro"):** follow up with `Descreva o stack (ex.: "Qwik + qwik-ui"):`. Set top-level `framework = "custom"`. Store the free text as `detected.framework = "custom: <free-text>"`. Set `bootstrappedFromEmpty: true`. Run 0.2 to capture agent guidelines (a greenfield repo can still ship `AGENTS.md`/`CLAUDE.md`/`GEMINI.md`), then skip 0.3-0.4 and go directly to 0.5 with `chosen: "custom"` and `freeText: <free-text>`.
+- **Option 8 ("Outro stack"):** follow up with `Descreva o stack (ex.: "Qwik + qwik-ui"):`. Set top-level `framework = "custom"`. Store the free text as `detected.framework = "custom: <free-text>"`. Set `bootstrappedFromEmpty: true`. Run 0.2 to capture agent guidelines (a greenfield repo can still ship `AGENTS.md`/`CLAUDE.md`/`GEMINI.md`), then skip 0.3-0.4 and go directly to 0.5 with `chosen: "custom"` and `freeText: <free-text>`.
 
 For options 1-7, proceed to 0.2 as usual. Step 2 of 0.1 (ecosystem detection) yields empty arrays for every category — that's expected and not an error. In 0.3 the strategy menu is composed with these overrides whenever `bootstrappedFromEmpty === true`:
 
@@ -313,7 +313,7 @@ This check runs **before** §0.3 strategy menu so every subsequent write — `st
 The menu is dynamically generated based on the detected framework and ecosystem packages. Construction rules:
 
 1. **Always include** a framework-appropriate "vanilla / minimal" baseline as the second-to-last option.
-2. **Always include** `Outro (descreva)` as a free-text escape hatch as the last option.
+2. **Always include** `Outra estratégia (descreva)` as a free-text escape hatch as the last option.
 3. For each detected ecosystem UI lib in the framework's column, add one canonical strategy option. If a matching form lib is also detected, add a second option that combines them.
 4. If only Tailwind is detected (no UI lib): add `Headless + Tailwind utilities` ahead of the vanilla baseline.
 
@@ -325,7 +325,7 @@ To compose the menu for the current invocation:
 2. Filter `strategies[]` to entries whose `framework` equals `detected.framework`.
 3. Apply construction rules 1-4 above (vanilla baseline second-to-last, `Outro (descreva)` last, dedup by detected UI/form lib markers via each entry's `markers.ui` / `markers.form`).
 4. Render each filtered entry as one numbered menu line: `<N>. <label>`.
-5. Always append `Outro (descreva)` as the last numbered option, with strategy ID `custom` (the `custom` ID is a code-level special case — it is intentionally NOT present in `strategies.json`).
+5. Always append `Outra estratégia (descreva)` as the last numbered option, with strategy ID `custom` (the `custom` ID is a code-level special case — it is intentionally NOT present in `strategies.json`).
 
 The user-facing menu format (numbered list + `Resposta (1-N):` prompt) does NOT change — only its data source. The menu typically shows 3-5 numbered options.
 
@@ -349,7 +349,7 @@ Como você quer que eu modele a seção "Code API" dos DS files?
   2. antd visual + react-hook-form (Controller + antd Input)
   3. Tailwind only (sem UI lib)
   4. Native HTML/JSX + CSS
-  5. Outro (descreva)
+  5. Outra estratégia (descreva)
 
 Resposta (1-5):
 ```
@@ -368,12 +368,12 @@ Como você quer que eu modele a seção "Code API" dos DS files?
   1. jQuery UI + Bootstrap (full kit)
   2. Bootstrap + jQuery (sem jQuery UI)
   3. jQuery puro + CSS
-  4. Outro (descreva)
+  4. Outra estratégia (descreva)
 
 Resposta (1-4):
 ```
 
-If the user picks "Outro" (custom), follow up with: `Descreva a estratégia em texto livre (ex.: "usar nossa lib interna @empresa/ui"):` and store the free-text under `freeText` in the JSON (with `chosen: "custom"`).
+If the user picks "Outra estratégia" (custom), follow up with: `Descreva a estratégia em texto livre (ex.: "usar nossa lib interna @empresa/ui"):` and store the free-text under `freeText` in the JSON (with `chosen: "custom"`).
 
 ### 0.5 Persist the choice
 
