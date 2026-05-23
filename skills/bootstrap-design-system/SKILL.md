@@ -226,7 +226,26 @@ For each item, Chrome MCP performs:
 5. **Write `docs/design/design-system/NN-<slug>.html`** following `templates/ds-component-pattern.md`:
    - Required sections present: §1 (All-states grid), §4 (Code API), §7 (Anatomy), §8 (Behavior).
    - §1 All-states grid: one cell per state captured via `seedActions` (single cell if only the default state was captured — flagged with a note that more `seedActions` would expand coverage).
-   - §4 Code API: populated with the **original source snippet** read from `src/components/<file>.<ext>`. Format the snippet per the strategy adaptation guide in `templates/ds-component-pattern.md` §6 for the `(framework, chosen)` tuple from `.markup-design/scratch/strategy.json`. If the source uses a different lib than `chosen` requires, **translate the snippet to the chosen strategy** and prepend the comment `// (source uses <X>; chosen strategy is <chosen> — translated example, verify by hand)`.
+   - §4 Code API: populated with the **original source snippet** read from `src/components/<file>.<ext>`, **preserved verbatim** — no library translation, no rewrites. After the verbatim code block, append a `<details>` block that flags the strategy fit. Two cases:
+
+     - **Source library matches the chosen strategy** (e.g., source uses `antd` and `chosen === "react-antd-rhf"`): emit:
+
+       ```html
+       <details>
+         <summary>Strategy fit</summary>
+         <p>Esse snippet usa <code>&lt;source-lib&gt;</code>, que casa com a estratégia atual <code>&lt;chosen&gt;</code>. Pode ser copiado direto em features novas que tocam esse DS.</p>
+       </details>
+       ```
+     - **Source library differs from the chosen strategy** (e.g., source uses `Mantine` but `chosen === "react-antd-rhf"`): emit:
+
+       ```html
+       <details>
+         <summary>⚠ Strategy mismatch</summary>
+         <p>Esse snippet usa <code>&lt;source-lib&gt;</code>. A estratégia escolhida no Phase 0 é <code>&lt;chosen&gt;</code>. Ao implementar features que tocam esse DS, adapte o snippet pra <code>&lt;chosen&gt;</code> seguindo o §6 do template empacotado (<code>templates/ds-component-pattern.md</code>). Não traduza durante o bootstrap — preserve a fonte verbatim pra rastrear de onde veio.</p>
+       </details>
+       ```
+
+     The verbatim-preserve rule applies even when the source lib is unrecognized (no library detected): emit the first form with `<source-lib>` replaced by the literal string `unknown` and the prose adjusted to *"não foi possível detectar a lib do snippet"*.
    - §7 Anatomy: `dl.tokens` table populated from the CSS-rewrite pass (token references identified during the snapshot).
    - §8 Behavior: initially a placeholder bullet list (`- [populated in Step D]`); Step D fills it as JS is ported.
    - §5 State decision matrix: initially absent. Step D adds rows as it identifies interactions. If component has ≥3 states by the end of Step D, the matrix is present; otherwise the section is omitted.
