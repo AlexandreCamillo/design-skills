@@ -264,6 +264,98 @@ function validateGeneratedTemplateInSync() {
   }
 }
 
+function collectHeadings(markdown) {
+  // Returns the set of trimmed heading titles found in the body, plus a parallel
+  // set of leading numeric tokens (e.g., "0.5", "0.2.5") harvested from `### N.N Title`
+  // style headings.
+  const titles = new Set();
+  const numeric = new Set();
+  const HEADING_RE = /^#{1,6}\s+(.+?)\s*$/gm;
+  let m;
+  while ((m = HEADING_RE.exec(markdown)) !== null) {
+    const raw = m[1].trim();
+    titles.add(raw);
+    // Strip a `### 0.2.5 Branch check (...)` style numeric prefix and store the bare title too.
+    const numMatch = raw.match(/^(\d+(?:\.\d+)*)\s+(.+)$/);
+    if (numMatch) {
+      numeric.add(numMatch[1]);
+      titles.add(numMatch[2].trim());
+    }
+  }
+  return { titles, numeric };
+}
+
+function headingMatches(targetHeadings, title) {
+  // Exact match wins. Otherwise, accept any heading that BEGINS with the referenced
+  // title followed by either end-of-string or a parenthetical clarifier (e.g.,
+  // ` (no Chrome MCP)` or ` (once per skill start)`). This mirrors how humans cite
+  // sections — they elide the parenthetical aside without changing the meaning.
+  if (targetHeadings.titles.has(title)) return true;
+  for (const h of targetHeadings.titles) {
+    if (h.startsWith(title + ' (') && h.endsWith(')')) return true;
+  }
+  return false;
+}
+
+function validateCrossReferences() {
+  const targets = [
+    { skill: 'design-feature',          path: join(SKILLS_DIR, 'design-feature', 'SKILL.md') },
+    { skill: 'bootstrap-design-system', path: join(SKILLS_DIR, 'bootstrap-design-system', 'SKILL.md') },
+  ];
+  const headingsBySkill = new Map();
+  for (const t of targets) {
+    if (!existsSync(t.path)) continue;
+    headingsBySkill.set(t.skill, collectHeadings(readFileSync(t.path, 'utf8')));
+  }
+  // Match `§ "Title"` (with or without leading "see"/"See"), curly or straight quotes.
+  // Group 1 captures the title.
+  const QUOTED_RE = /§\s*["“]([^"”\n]+?)["”]/g;
+  // Match bare numeric refs like `§0.5`, `§ 0.2.5`. Group 1 captures the number.
+  const NUMERIC_RE = /§\s*(\d+(?:\.\d+)+)/g;
+  // Recognize cross-file context in the 120 chars before a `§ "..."` ref. Either:
+  //   - a relative or absolute path to the other SKILL.md (`../design-feature/SKILL.md`,
+  //     `skills/design-feature/SKILL.md`), OR
+  //   - a bare mention of the other skill's name immediately preceding the `§` (e.g.,
+  //     `` `design-feature` § "Phase 5 — ..." ``).
+  const CROSS_FILE_RE = /(?:skills\/|\.\.\/)(design-feature|bootstrap-design-system)\/SKILL\.md|`?(design-feature|bootstrap-design-system)`?\s*$/;
+  for (const t of targets) {
+    if (!existsSync(t.path)) continue;
+    const body = readFileSync(t.path, 'utf8');
+    const ownHeadings = headingsBySkill.get(t.skill);
+    let m;
+    while ((m = QUOTED_RE.exec(body)) !== null) {
+      const title = m[1].trim();
+      const ctx = body.slice(Math.max(0, m.index - 120), m.index);
+      const cross = ctx.match(CROSS_FILE_RE);
+      let targetSkill = null;
+      if (cross) {
+        targetSkill = cross[1] || cross[2];
+        // Don't redirect to "self" if the bare-name fallback matched our own skill —
+        // this happens when the surrounding prose mentions e.g. `design-feature` while
+        // we're currently scanning design-feature/SKILL.md.
+        if (targetSkill === t.skill) targetSkill = null;
+      }
+      const targetHeadings = targetSkill ? headingsBySkill.get(targetSkill) : ownHeadings;
+      if (!targetHeadings) continue;
+      if (!headingMatches(targetHeadings, title)) {
+        issues.push({
+          skill: t.skill,
+          message: `cross-reference § "${title}" does not match any heading${targetSkill ? ` in ${targetSkill}/SKILL.md` : ''}`,
+        });
+      }
+    }
+    while ((m = NUMERIC_RE.exec(body)) !== null) {
+      const num = m[1];
+      if (!ownHeadings.numeric.has(num)) {
+        issues.push({
+          skill: t.skill,
+          message: `cross-reference §${num} does not match any numbered heading`,
+        });
+      }
+    }
+  }
+}
+
 const skills = readdirSync(SKILLS_DIR);
 for (const s of skills) {
   validate(s);
@@ -273,6 +365,7 @@ validateDesignFeatureTemplate();
 const strategiesData = validateStrategies();
 validateStrategyCrossReferences(strategiesData);
 validateGeneratedTemplateInSync();
+validateCrossReferences();
 
 if (issues.length === 0) {
   console.log(`✓ Validated ${skills.length} skill(s); no issues.`);
