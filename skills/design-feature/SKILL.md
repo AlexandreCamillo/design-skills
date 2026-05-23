@@ -683,6 +683,26 @@ When the user approves:
      - `root.classList.add(state.theme);` with `choices.theme === 'dark'` → add `class="... dark"` to the component root.
    - Once all assignments are baked, delete the `apply` function definition (it is dead code without the tweaker).
 
+2.5. **Visual-diff post-bake** (between bake and reformat, before structural changes):
+   - **Goal:** confirm the baked DS file renders identically to the approved Phase 1 mockup. If it doesn't, baking dropped something.
+   - **`[se Chrome MCP]`** Screenshot both:
+     - The baked DS file at `file://<repo>/docs/design/design-system/NN-<slug>.html`
+     - The last-approved mockup at `docs/design/mockups/<date>-<slug>-vN.html` (read `state.json:mockupFile` for the exact path)
+   - Compute the pixel-difference percentage (use the Chrome MCP server's image-diff capability if exposed; otherwise script it via `evaluate_script` reading both `<img>` sources into a `<canvas>` and counting non-matching pixels). Threshold: **5%**.
+   - If diff ≤ 5%: proceed to step 3.
+   - If diff > 5%: pause and print to the user (PT-BR):
+
+     ```
+     ⚠ Diff visual de <N>% entre o mockup aprovado e o DS bakeado.
+        Mockup:  docs/design/mockups/<file>
+        DS:      docs/design/design-system/<file>
+        Provavelmente um knob baked não foi aplicado, ou uma escolha vazou pelo gate.
+        Quer eu inspecionar e re-bakear, ou aprovar mesmo assim?
+     ```
+
+     Wait for user response: `inspect` → re-read `tweakerChoices` and the bake bullets, find the missing application, re-bake; `ok` → continue with documented exception in `state.json:notes`.
+   - **`[manual fallback]`** No Chrome MCP: print both paths to the user and ask them to open both side-by-side, then confirm visual parity with `"parity ok"` before continuing. On `"parity fails"`: same inspect/re-bake loop as above.
+
 3. **Reformat DS file to follow the bundled pattern** (template-driven):
    - **Preserve the attributes baked in step 2.2.** The component root element gained `data-*`, inline `style`, and/or `class` values during baking. These literals encode the user-approved choices and MUST survive the reformat. When restructuring the markup, move siblings/children around the root — never strip or rewrite the root's attributes. If the reformat genuinely needs a new root element (rare), copy the baked `data-*`, `style`, and `class` values onto the new root verbatim before deleting the old one.
    - In parallel: read `templates/ds-component-pattern.md` end-to-end (path relative to this SKILL.md) and read `.markup-design/scratch/strategy.json` to recover `framework` and `chosen`.
