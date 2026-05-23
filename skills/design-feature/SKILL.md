@@ -810,8 +810,9 @@ Do NOT invoke brainstorming for tech spec until:
    - Schema/data flow constraints.
    - Risks (concurrency, edge cases, performance).
    - `STRATEGY-CONTEXT`: chosen strategy is `<chosen>` (framework: `<framework>`). Reflect this in arch/data/risks discussion (no custom date pickers if `<framework>`'s lib ships one, etc.).
+   - `DS-REFERENCE`: the tech spec MUST contain a `## DS components touched` section listing each DS file under `docs/design/design-system/` that this feature reads, edits, or adds — or explicitly state "none" with a one-line justification (e.g., *"none — this feature is a backend job with no UI surface"*, or *"none — only touches existing components without modifying them"*). The section format is one Markdown list item per file: `- \`docs/design/design-system/NN-<slug>.html\` — <reads | edits | adds> — <one-line why>`. This list feeds the Phase 4 post-plan DS-edit-task check; an empty or missing section makes that check unreliable.
 
-2. **Output:** `docs/superpowers/specs/<date>-<slug>-tech-spec.md`. This must NOT re-design UI/UX — Phase 1 + Phase 2 settled that. If during Phase 3 a technical reality forces a design change, surface it explicitly and confirm with the user before going back to Phase 1.
+2. **Output:** `docs/superpowers/specs/<date>-<slug>-tech-spec.md`. This must NOT re-design UI/UX — Phase 1 + Phase 2 settled that. If during Phase 3 a technical reality forces a design change, surface it explicitly and confirm with the user before going back to Phase 1. The spec MUST contain a `## DS components touched` section per the `DS-REFERENCE` directive in step 1 — without it, the Phase 3 gate refuses to advance.
 
 3. **Wait for explicit user approval** of the tech spec.
 
@@ -823,10 +824,17 @@ Do NOT invoke brainstorming for tech spec until:
 
 ```
 <HARD-GATE>
-Do NOT invoke writing-plans until BOTH of the following are true:
+Do NOT invoke writing-plans until ALL of the following are true:
   - User explicitly approved the tech spec at docs/superpowers/specs/<date>-<slug>-tech-spec.md.
   - Branch check from §0.2.5 already ran (it runs at Phase 0, so by Phase 3 this is
     confirmed by checking `strategy.json:branchCheck` is set — see §0.5 schema).
+  - The tech spec contains a `## DS components touched` section (case-sensitive header
+    match). If the section body is just "none" or "(none)", a one-line justification
+    MUST follow on the same line or the next bullet. The gate greps the spec for
+    `^##\s+DS components touched\s*$`; missing → refuse with:
+
+      ❌ Tech spec falta seção `## DS components touched`. Adicione a lista (ou
+         "none — <razão>") antes de aprovar.
 </HARD-GATE>
 ```
 
