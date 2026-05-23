@@ -310,20 +310,40 @@ For each component (in inventory tier order):
    - Open both targets in separate Chrome MCP tabs in parallel (independent URLs).
    - For each matrix row: apply the trigger in both tabs in parallel, capture both screenshots in one step, then report visual / DOM-state delta.
    - If §5 is absent (fewer than 3 states), fall back to a single "snapshot in seedAction state and visual diff" — capture both targets and screenshot-diff. Tell the user: "automated interaction QA skipped — add more `seedActions` if you want broader coverage."
-5. **Present the delta to the user:**
+5. **Compute port-status mechanically from QA pass rate, then prompt only for what's left to humans.**
+
+   After the QA run in step 4, compute:
+
+   - `passRate = passingMatrixRows / totalMatrixRows` (where "passing" means visual+state delta within threshold; "matrix absent" is treated as `passRate = 1.0` for purely-visual components — see Step C.5 — so they go straight to `ported`).
+   - `attempted = true` once the agent has written non-stub code into `init(...)`. If the agent never attempted a port (matrix not exercised, `init` still TODO), `attempted = false`.
+
+   Mechanical mapping (no user prompt for the status field itself):
+
+   | Condition                                | Front-matter `js:` value |
+   |------------------------------------------|--------------------------|
+   | `attempted === false`                    | `stub`                   |
+   | `attempted && passRate === 1.0`          | `ported`                 |
+   | `attempted && 0 < passRate < 1.0`        | `partial`                |
+   | `attempted && passRate === 0`            | `partial` (with a "(custom)" annotation on every matrix row) |
+
+   The agent writes the resulting value into the DS file's front-matter without asking. For atoms in auto-port (see Step D tier policy), this assignment is silent and the component is committed in the tier batch. For molecules and organisms, the agent then presents the delta and prompts only:
 
    ```
-   sidebar:
-     ✓ collapse toggle (matrix row "collapsed")
-     ✓ item select (matrix row "selected")
-     ✗ drag-n-drop (matrix row "reordering"): DS file does not fire 'dragend' that live route fires
-        → looks like missing pointer-events plumbing in the port
+   sidebar — passRate = 2/3 = 67% → js: partial
+
+   Próximos passos:
+     1. aceitar como partial (committa, segue pra próximo)
+     2. refinar agora (mais Read na fonte + Write no DS file + re-roda QA)
+     3. adiar (deixa como partial, marca pra revisitar depois — sem refinar)
    ```
 
-   The user picks one of:
-   - "accept partial" — front-matter `js: partial`; the gap is documented as a "(custom)" annotation on the matrix row + bullet in §8 of the DS file.
-   - "refine" — agent iterates (more `Read` on source, more `Write` on DS file, re-run QA).
-   - "postpone" — front-matter stays `js: stub`; the component is shipped as a visual reference only.
+   The user picks one of `aceitar`, `refinar`, `adiar`:
+
+   - `aceitar` — commit with the computed `js:` value. The "(custom)" annotations on failing matrix rows + the §8 bullets stay as-is.
+   - `refinar` — agent iterates (more `Read` on source, more `Write` on DS file, re-run QA from step 4). After re-QA, recompute `passRate` and re-enter step 5. Status may flip from `partial` to `ported` or stay `partial`.
+   - `adiar` — commit with the computed `js:` value. Append `<!-- TODO: bootstrap port follow-up — passRate <X>% -->` at the top of the DS file's `<style>` block so future passes find it. Update inventory `Notes` with "adiado".
+
+   Note: `stub` is no longer a user-selectable outcome — it's the implicit value when no port was attempted (the agent skipped the component entirely from step 1). To opt out of porting a component, the user does so in the inventory (`action: skip` in Step A), not in step 5.
 6. **Update inventory `Notes` column** with the current state.
 7. **Commit each item separately:** `git commit -m "feat(ds): bootstrap port <slug>"`. Granular commits make it easy to revert individual ports. For atoms in auto-port (see tier gate policy above), batch the commits — one commit per tier rather than one per slug — using the message `feat(ds): bootstrap port <tier> tier (N items)`. Per-item commits are still required for molecules surfaced via `revisar lista` and for all organisms.
 
