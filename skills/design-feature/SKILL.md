@@ -636,8 +636,21 @@ Do NOT invoke markup-cli promote, edit any file under docs/design/design-system/
 or commit anything until ALL of the following are true:
   - User said "aprovado" / "approved" / "ship it" explicitly in this transcript.
   - User pasted the tweaker JSON { slug, version, choices }.
-  - That JSON was validated (slug matches feature slug; version === 1; choices is a flat object)
-    and written to .markup-design/scratch/<slug>/state.json under `tweakerChoices`.
+  - That JSON was validated (slug matches feature slug; version checks below pass;
+    choices is a flat object AND non-empty) and written to
+    .markup-design/scratch/<slug>/state.json under `tweakerChoices`.
+
+Version validation (both directions enforced):
+  - If pasted `version > VERSION` (current: 1): refuse with
+    "❌ tweaker template newer than skill, upgrade design-skills"
+  - If pasted `version < VERSION`: refuse with
+    "❌ tweaker template older than skill, regenerate the mockup"
+  - Only `version === VERSION` advances.
+
+Empty-tweaker refusal (every design choice is an explicit knob):
+  - If `choices === {}` after parse: refuse with
+    "❌ Tweaker has zero options — every design choice must be a knob. Add at least one option, or explain in writing why this component has zero variable choices."
+  - On refusal, do NOT write state.json:tweakerChoices and do NOT advance.
 </HARD-GATE>
 ```
 
@@ -645,7 +658,10 @@ When the user approves:
 
 1. Print: `Aprovado. Clique 📋 Copy JSON no tweaker do mockup atual e cole aqui pra eu travar as escolhas.`
 2. Wait for the paste.
-3. Parse and validate the JSON. Expected shape: `{ slug, version, choices }` with `version === 1` (matches the `VERSION` constant in `templates/tweaker.html`; bump there and here together if the schema changes).
+3. Parse and validate the JSON. Expected shape: `{ slug, version, choices }`.
+   - `slug` must match the feature slug.
+   - `version` must equal the `VERSION` constant in `templates/tweaker.html` (currently `1`). Refuse with the PT-BR message above on mismatch — both `> VERSION` (upgrade design-skills) and `< VERSION` (regenerate mockup) abort, do not advance. Bump `VERSION` in the template and this gate together when the payload shape changes.
+   - `choices` must be a flat object AND non-empty. An empty `choices` object means the mockup shipped without any explicit knobs — refuse with the empty-tweaker message above. Do not write state.json on refusal.
 4. Write `state.json` (see schema below).
 5. `[se Markup online]` close any still-open threads: `markup-cli comments resolve <id> --body "closed by approval"`.
 6. Ask the user: *"Is this a new DS component, a variant of an existing one, or composition of existing components? If new, what slug?"*
