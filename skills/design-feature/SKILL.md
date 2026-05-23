@@ -379,6 +379,7 @@ Write `.markup-design/scratch/strategy.json`:
 
 ```json
 {
+  "schemaVersion": 1,
   "framework": "react",
   "chosen": "react-antd-rhf",
   "label": "antd visual + react-hook-form",
@@ -406,6 +407,8 @@ Write `.markup-design/scratch/strategy.json`:
   }
 }
 ```
+
+`schemaVersion` is `1`. Reads treat a missing `schemaVersion` as `0` and migrate inline (defaults: `bootstrappedFromEmpty=false`, `branchCheck=undefined`). See `docs/SCHEMA-CHANGELOG.md` for the compat policy.
 
 `framework` is always set (even if `vanilla`). `chosen` is the framework-prefixed strategy ID. The two together resolve uniquely to one row in the §6 strategy-adaptation matrix of the bundled template.
 
