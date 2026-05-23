@@ -252,6 +252,35 @@ The picked stack is binding for the rest of the feature. The skill does NOT inst
 - If `docs/INDEX.md` exists → read it. List linked docs whose titles match `/UI|UX|design|frontend|component|style/i`. Don't auto-read those — list them to the user with an offer "want me to read these before proposing strategy?"
 - If neither exists → skip silently. The strategy menu still works; it just has less context.
 
+### 0.2.5 Branch check (moved from Phase 3)
+
+This check runs **before** §0.3 strategy menu so every subsequent write — `strategy.json`, `state.json`, mockups, the DS file, the tech spec, plan, and code — lands on the chosen branch/worktree from the start. Previously this check sat at Phase 3 → 4, which caused state to be born on `main`/`master` and then orphaned if the user picked worktree.
+
+1. Run `git rev-parse --abbrev-ref HEAD` to learn the current branch.
+2. Run `git rev-parse --show-toplevel` to learn the repo root and derive `<repo-name>` (basename).
+3. Run `git status --porcelain` to detect a dirty tree.
+4. **If current branch is `main` or `master`:**
+
+   Print (PT-BR):
+
+   > Você está em `<branch>`. Esta skill grava `strategy.json`, `state.json`, mockups e (mais tarde) tech spec, plano e código. Recomendo não fazer isso direto na branch principal. Escolha:
+   >
+   > **A**. Criar branch `feature/design-<repo-name>` aqui mesmo
+   > **B**. Criar worktree em `../<repo-name>-design/` e executar lá
+   > **C**. Seguir mesmo assim na branch atual (não recomendado)
+   >
+   > [se tree sujo] ⚠ Working tree tem mudanças não commitadas — recomendo commitar ou stashar antes de A/B.
+
+   - **A**: `git checkout -b feature/design-<repo-name>` → continue in same cwd.
+   - **B**: prefer invoking the `using-git-worktrees` sub-skill if available — Claude Code: `Skill: superpowers:using-git-worktrees`; Gemini CLI: `activate_skill('superpowers:using-git-worktrees')`; Codex CLI: read `~/.codex/superpowers/skills/using-git-worktrees/SKILL.md` inline. If the sub-skill is unavailable, fall back to direct shell: `git worktree add ../<repo-name>-design -b feature/design-<repo-name>`. Change cwd to the new worktree path before continuing.
+   - **C**: continue on current branch, print `Continuando em <branch> — não recomendado.`
+
+5. **If current branch is anything else:** print `Executando em \`<branch>\`. ✓` and continue.
+
+**Why the branch name is generic at this point.** Phase 0.2.5 runs before the user has named the feature (that happens in Phase 1 via `brainstorming`). The branch is named after the repo (`feature/design-<repo-name>`), not the feature, so it's stable across multiple features that share Phase 0 state. Sub-plan 6 (worktree registry) tracks per-feature worktrees with finer-grained naming on top of this base branch.
+
+**Gate.** Subsequent Phase 0 steps (0.3 strategy menu, 0.4 prompt, 0.5 persist, 0.6 resume) and every later phase MUST write into the branch/worktree picked here. Any tool that writes outside of cwd (e.g., absolute paths) must be re-rooted to the chosen worktree.
+
 ### 0.3 Compose the strategy menu (framework-aware)
 
 The menu is dynamically generated based on the detected framework and ecosystem packages. Construction rules:
@@ -342,13 +371,22 @@ Write `.markup-design/scratch/strategy.json`:
   },
   "chosenAt": "2026-05-21T...",
   "freeText": null,
-  "bootstrappedFromEmpty": false
+  "bootstrappedFromEmpty": false,
+  "branchCheck": {
+    "ranAt": "2026-05-21T...",
+    "originalBranch": "main",
+    "choice": "B",
+    "resultingBranch": "feature/design-myrepo",
+    "worktreePath": "../myrepo-design"
+  }
 }
 ```
 
 `framework` is always set (even if `vanilla`). `chosen` is the framework-prefixed strategy ID. The two together resolve uniquely to one row in the §6 strategy-adaptation matrix of the bundled template.
 
 `bootstrappedFromEmpty` is `true` when 0.1.5 ran (no framework markers were detected and the user picked the framework manually). Useful as audit context — e.g., Phase 4 plans can include "install <stack>" tasks first, since the project has no deps yet.
+
+`branchCheck` records the outcome of §0.2.5. `originalBranch` is whatever `git rev-parse --abbrev-ref HEAD` returned at the moment the check ran. `choice` is `A`, `B`, or `C` (the user's pick from the §0.2.5 menu) or `null` if the original branch was already a non-default branch and no prompt was shown. `worktreePath` is `null` when `choice` is `A` or `C`. Phase 3 gate reads `strategy.json:branchCheck` to confirm the check happened.
 
 Ensure `.markup-design/` is in `.gitignore` (existing behavior already covers this).
 
@@ -371,6 +409,8 @@ Estratégia salva: antd visual + react-hook-form (escolhida 2026-05-21, framewor
 - `change` → re-run 0.1-0.5; overwrite `strategy.json`.
 - `inspect` → print the JSON contents and re-ask.
 
+**Branch-check reuse.** Because the branch check ran at §0.2.5 (not §3), resume always picks up inside the branch/worktree that the original Phase 0 run chose. If the user has somehow moved out of that branch (e.g., manually checked out `main` mid-feature), prompt: *"O `strategy.json` foi gravado em `<originalBranch-or-worktree>`, mas você está em `<current>`. Volto pra lá ou seguimos aqui?"*. Default: jump back to `branchCheck.resultingBranch` (or `worktreePath` if set).
+
 ### 0.7 Phase 0 → Phase 1 gate
 
 ```
@@ -379,7 +419,8 @@ Do NOT invoke Phase 1 (brainstorming) until:
   - .markup-design/scratch/strategy.json exists, AND
   - It contains a non-null `framework` field, AND
   - It contains a non-null `chosen` field, AND
-  - If `chosen === "custom"`, the `freeText` field is non-empty.
+  - If `chosen === "custom"`, the `freeText` field is non-empty, AND
+  - It contains a `branchCheck` object with a non-null `ranAt` (proves §0.2.5 ran).
 </HARD-GATE>
 ```
 
@@ -390,10 +431,11 @@ State for each feature lives at `.markup-design/scratch/<feature-slug>/state.jso
 ```
                 ┌─────────────────────────────────────────────┐
                 │  Phase 0: Discovery + framework + strategy  │
-                │  detect package.json + agent rules + docs;  │
+                │  detect package.json + agent rules + branch;│
                 │  present strategy menu; persist to          │
                 │  .markup-design/scratch/strategy.json       │
                 │  gate: strategy.json has framework + chosen │
+                │        + branchCheck.ranAt                  │
                 └─────────────────────┬───────────────────────┘
                                       │
                                       ▼
@@ -417,7 +459,8 @@ State for each feature lives at `.markup-design/scratch/<feature-slug>/state.jso
                 │  Phase 3: Technical brainstorm               │
                 │  brainstorming (arch/data/risks focus)       │
                 │  pre-load: DS files affected, target code    │
-                │  gate: tech-spec approved + branch check     │
+                │  gate: tech-spec approved                    │
+                │        + DS components touched section       │
                 └─────────────────────┬───────────────────────┘
                                       │
                 ┌─────────────────────▼───────────────────────┐
@@ -760,28 +803,7 @@ Do NOT invoke brainstorming for tech spec until:
 
 ### Phase 3 → 4 branch check
 
-After tech-spec approval and **before** invoking `writing-plans`:
-
-1. Run `git rev-parse --abbrev-ref HEAD` to learn the current branch.
-2. Run `git rev-parse --show-toplevel` to learn the repo root and derive `<repo-name>` (basename).
-3. Run `git status --porcelain` to detect a dirty tree.
-4. **If current branch is `main` or `master`:**
-
-   Print:
-
-   > Você está em `<branch>`. Recomendo não executar o plano direto na branch principal. Escolha:
-   >
-   > **A**. Criar branch `feature/<slug>` aqui mesmo
-   > **B**. Criar worktree em `../<repo-name>-<slug>/` e executar lá
-   > **C**. Seguir mesmo assim na branch atual (não recomendado)
-   >
-   > [se tree sujo] ⚠ Working tree has uncommitted changes — recomendo commitar ou stashar antes de A/B.
-
-   - **A**: `git checkout -b feature/<slug>` → continue in same cwd.
-   - **B**: prefer invoking the `using-git-worktrees` sub-skill if available — Claude Code: `Skill: superpowers:using-git-worktrees`; Gemini CLI: `activate_skill('superpowers:using-git-worktrees')`; Codex CLI: read `~/.codex/superpowers/skills/using-git-worktrees/SKILL.md` inline. If the sub-skill is unavailable, fall back to direct shell: `git worktree add ../<repo-name>-<slug> -b feature/<slug>`. Change cwd to the new worktree path before continuing.
-   - **C**: continue on current branch, print `Continuando em <branch> — não recomendado.`
-
-5. **If current branch is anything else:** print `Executando em \`<branch>\`. ✓` and continue.
+**Moved to §0.2.5.** The branch check now runs before §0.3 strategy menu, so every Phase 0+ write lands on the chosen branch/worktree from the start. By the time Phase 3 finishes, the working tree is already on `feature/design-<repo-name>` (option A) or inside the worktree (option B). No re-check is needed here.
 
 ### Phase 3 gate
 
@@ -789,8 +811,8 @@ After tech-spec approval and **before** invoking `writing-plans`:
 <HARD-GATE>
 Do NOT invoke writing-plans until BOTH of the following are true:
   - User explicitly approved the tech spec at docs/superpowers/specs/<date>-<slug>-tech-spec.md.
-  - Branch check ran: if HEAD was main/master, user picked A/B/C from the branch prompt;
-    if A or B, the branch/worktree was created and cwd is in the right place.
+  - Branch check from §0.2.5 already ran (it runs at Phase 0, so by Phase 3 this is
+    confirmed by checking `strategy.json:branchCheck` is set — see §0.5 schema).
 </HARD-GATE>
 ```
 
