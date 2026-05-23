@@ -94,34 +94,34 @@ After the hard check passes, detect optional dependencies and surface a one-bloc
 ```
 design-feature ready. Capability matrix:
 
-  ✓ HARD: superpowers <version> detected
-  {cli line:        ✓ markup-cli vX.Y.Z (satisfies compat.cli <range>)
-                    |  ✗ markup-cli vX.Y.Z below compat.cli <range>
-                                                ↳ upgrade: npm i -g markup-cli@latest (or git+https install)
-                                                ↳ refusing to proceed
-                    |  ✗ binary missing from PATH
-                                                ↳ install: `npm i -g markup-cli` (public phase) or git-based install while private
-                                                ↳ without it: manual builds + uploads}
-  {markup online:   ✓ connected to <url> @ <X.Y.Z> (satisfies compat.markup <range>)
-                    |  ⚠ connected to <url> @ <X.Y.Z>, below compat.markup <range>
-                                                ↳ degrading: many commands still work; upgrade the Markup server or pin this skill to an older tag
-                    |  ⚠ connected to <url>, /api/version returned unknown
-                                                ↳ degrading: server is too old to advertise its version
-                    |  ✗ markup online not connected
-                                                ↳ run: markup-cli connect <url>
-                                                ↳ without it: companion-server hosting}
-  {chrome:          ✓ Chrome MCP available (server: <server-name>, tools resolved into state.json:chromeMcp)  |  ✗ no Chrome MCP server registered
-                                              ↳ install on Claude Code (preferred): Claude for Chrome extension + `claude --chrome` (Chrome/Edge, Claude Code 2.0.73+)
+  ✓ HARD: superpowers <version> detectado
+  {cli line:        ✓ markup-cli vX.Y.Z (satisfaz compat.cli <range>)
+                    |  ✗ markup-cli vX.Y.Z abaixo de compat.cli <range>
+                                                ↳ atualize: npm i -g markup-cli@latest (ou git+https install)
+                                                ↳ recusando prosseguir
+                    |  ✗ binário ausente do PATH
+                                                ↳ instalar: `npm i -g markup-cli` (fase pública) ou git-based install enquanto privado
+                                                ↳ sem ele: builds + uploads manuais}
+  {markup online:   ✓ conectado em <url> @ <X.Y.Z> (satisfaz compat.markup <range>)
+                    |  ⚠ conectado em <url> @ <X.Y.Z>, abaixo de compat.markup <range>
+                                                ↳ degradando: muitos comandos ainda funcionam; suba o servidor Markup ou pin esta skill numa tag mais antiga
+                    |  ⚠ conectado em <url>, /api/version retornou unknown
+                                                ↳ degradando: servidor velho demais pra anunciar a versão
+                    |  ✗ markup online não conectado
+                                                ↳ rode: markup-cli connect <url>
+                                                ↳ sem ele: hosting via companion-server}
+  {chrome:          ✓ Chrome MCP disponível (server: <server-name>, tools resolvidas em state.json:chromeMcp)  |  ✗ nenhum servidor Chrome MCP registrado
+                                              ↳ instalar no Claude Code (preferido): extensão Claude for Chrome + `claude --chrome` (Chrome/Edge, Claude Code 2.0.73+)
                                                                           fallback: `claude mcp add chrome-devtools npx chrome-devtools-mcp@latest` (WSL/Brave/Arc)
-                                              ↳ install on Gemini CLI:  `gemini mcp add chrome-devtools npx chrome-devtools-mcp@latest`
-                                              ↳ install on Codex CLI:   `codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest` (Codex Chrome extension is web-app-only)
-                                              ↳ without it: Phase 5 falls back to manual checklist}
-  {cloudflared:     ✓ cloudflared available  |  — not installed
-                                              ↳ install: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
-                                              ↳ optional: expose the companion server publicly}
-  {strategy:        ✓ react / antd visual + react-hook-form (saved 2026-05-21)
-                                              ↳ type "change strategy" to re-pick
-                    |  — first run: Phase 0 will run to pick a framework + strategy}
+                                              ↳ instalar no Gemini CLI:  `gemini mcp add chrome-devtools npx chrome-devtools-mcp@latest`
+                                              ↳ instalar no Codex CLI:   `codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest` (extensão Chrome do Codex é web-app-only)
+                                              ↳ sem ele: Phase 5 cai pro checklist manual}
+  {cloudflared:     ✓ cloudflared disponível  |  — não instalado
+                                              ↳ instalar: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+                                              ↳ opcional: expor o servidor companion publicamente}
+  {strategy:        ✓ react / antd visual + react-hook-form (escolhida 2026-05-21)
+                                              ↳ digite "change strategy" pra re-escolher
+                    |  — primeira execução: Phase 0 vai rodar pra escolher framework + estratégia}
 
 Repository: https://github.com/AlexandreCamillo/markup-cli-toolkit
 ```
@@ -647,7 +647,7 @@ O tweaker é vinculado a um único `data-ds-component`. Se sua feature combina N
    - `markup-cli comments list <file> --status open --json`
    - `markup-cli comments read <annotationId> --json`
    - Decide: edit mockup → `markup-cli mockup version`; clarify → `markup-cli comments reply --body`; push back → `markup-cli comments reply` + `markup-cli comments react --emoji 🤔`; no change → `markup-cli comments resolve`. After applying changes: `markup-cli comments react <messageId> --emoji ✅`.
-   - Re-pause with the checkpoint pattern: `Mockup uploaded as <url>. Comment on Markup, then say "continue" when you want me to process the feedback.`
+   - Re-pause with the checkpoint pattern: `Mockup hospedado em <url>. Comente no Markup, e diga "continue" quando quiser que eu processe o feedback.`
 
 #### `[se Markup ausente]` Companion server fallback
 
@@ -734,14 +734,14 @@ or commit anything until ALL of the following are true:
 
 Version validation (both directions enforced):
   - If pasted `version > VERSION` (current: 1): refuse with
-    "❌ tweaker template newer than skill, upgrade design-skills"
+    "❌ template do tweaker é mais novo que a skill, atualize design-skills"
   - If pasted `version < VERSION`: refuse with
-    "❌ tweaker template older than skill, regenerate the mockup"
+    "❌ template do tweaker é mais antigo que a skill, regenere o mockup"
   - Only `version === VERSION` advances.
 
 Empty-tweaker refusal (every design choice is an explicit knob):
   - If `choices === {}` after parse: refuse with
-    "❌ Tweaker has zero options — every design choice must be a knob. Add at least one option, or explain in writing why this component has zero variable choices."
+    "❌ O tweaker tem zero opções — toda escolha de design tem que ser uma knob. Adicione ao menos uma opção, ou explique por escrito por que esse componente não tem nenhuma escolha variável."
   - On refusal, do NOT write state.json:tweakerChoices and do NOT advance.
 </HARD-GATE>
 ```
@@ -756,7 +756,7 @@ When the user approves:
    - `choices` must be a flat object AND non-empty. An empty `choices` object means the mockup shipped without any explicit knobs — refuse with the empty-tweaker message above. Do not write state.json on refusal.
 4. Write `state.json` (see schema below).
 5. `[se Markup online]` close any still-open threads: `markup-cli comments resolve <id> --body "closed by approval"`.
-6. Ask the user: *"Is this a new DS component, a variant of an existing one, or composition of existing components? If new, what slug?"*
+6. Ask the user: *"É um novo componente do DS, uma variante de um existente, ou composição de existentes? Se novo, qual o slug?"*
 
 ## Phase 2 — Promote (bake locked choices, strip tweaker)
 
@@ -900,7 +900,7 @@ Do NOT invoke writing-plans until ALL of the following are true:
 
      If `firstSrcTaskIndex < firstTestTaskIndex` (or `firstTestTaskIndex` is unset while `firstSrcTaskIndex` is set), print:
 
-     > ⚠ Test tasks must precede implementation tasks (TDD). O plano tem tarefa de implementação (`<path-do-firstSrcTask>`) antes de qualquer tarefa de teste. Confirme se a feature genuinamente não precisa de testes novos (e justifique) ou revise o plano para incluir as tarefas de teste antes das de implementação.
+     > ⚠ Tarefas de teste têm que vir antes das de implementação (TDD). O plano tem tarefa de implementação (`<path-do-firstSrcTask>`) antes de qualquer tarefa de teste. Confirme se a feature genuinamente não precisa de testes novos (e justifique) ou revise o plano para incluir as tarefas de teste antes das de implementação.
 
      Wait for the user to confirm "ok, sem testes novos por <razão>" or to ask for a revision.
 
@@ -1028,16 +1028,16 @@ Driven by the **State decision matrix table inside the DS file** (no sidecar).
    Phase 5 QA — <slug>
 
      Run folder:           <run-folder>          (screenshots: <scenario>-{live,ds}.png)
-     Matrix scenarios:     <N> covered
-     Auto-sweep:           <M> elementos varridos, <K> discovered states
-     Deltas:               <D> total → <D-fixed-code> code edits, <D-fixed-ds> DS edits, <D-exception> exceções
+     Cenários da matrix:   <N> cobertos
+     Auto-sweep:           <M> elementos varridos, <K> estados descobertos
+     Deltas:               <D> total → <D-fixed-code> edits de código, <D-fixed-ds> edits de DS, <D-exception> exceções
 
-   Discovered states (não estavam na matrix):
-     <element-selector> · <interaction> · <observed-visual-summary>
+   Estados descobertos (não estavam na matrix):
+     <element-selector> · <interaction> · <resumo-visual-observado>
      ...
 
    Deltas resolvidos:
-     <scenario> · Cause: <one-liner> · Decisão: <fix code|fix DS|exception>
+     <scenario> · Causa: <uma frase> · Decisão: <fix code|fix DS|exception>
      ...
    ```
 
@@ -1071,8 +1071,8 @@ Pra cada linha da "State decision matrix" no DS file:
   · Confirmar o aria/contract bate com a coluna "aria" do DS.
 
 Edge cases extras (não estão na matrix mas valem checar):
-  · Long text (line-clamp, overflow)
-  · Empty state (se aplicável)
+  · Texto longo (line-clamp, overflow)
+  · Estado vazio (se aplicável)
   · Reduced motion (DevTools → Rendering → "Emulate CSS prefers-reduced-motion")
 
 Diga "QA passes" quando estiver satisfeito; "QA fails" + descreva o drift.
@@ -1205,8 +1205,8 @@ On invocation, list any `.markup-design/scratch/*/state.json` and offer to resum
 
 1. Read the file. Determine the current phase from `phase`.
 2. Also read `.markup-design/scratch/strategy.json`. Compare both fields:
-   - If `state.json.framework ≠ strategy.json.framework`: prompt `This feature was started under framework "<old>"; project is now "<new>". Continue with the original ("<old>"), or restart Phase 0 to re-pick strategy?` Default: continue with original.
-   - If `state.json.strategy ≠ strategy.json.chosen` (same framework): prompt `This feature was started under strategy "<old>"; current default is "<new>". Continue with feature's original ("<old>"), or migrate to current ("<new>")?` Default: keep the feature's original.
+   - If `state.json.framework ≠ strategy.json.framework`: prompt `Essa feature começou com framework "<old>"; o projeto agora é "<new>". Continuar com o original ("<old>") ou refazer a Phase 0 pra re-escolher a estratégia?` Default: continue with original.
+   - If `state.json.strategy ≠ strategy.json.chosen` (same framework): prompt `Essa feature começou com estratégia "<old>"; o padrão atual é "<new>". Continuar com o original da feature ("<old>") ou migrar pro atual ("<new>")?` Default: keep the feature's original.
 3. If `companionServer` is set: check `<stateDir>/server-info` exists and the URL responds. If not, restart the server. If `tunnelUrl` was set, read `pidFile`, `kill` that PID (ignore errors if the process is gone), then relaunch the tunnel and overwrite `pidFile`.
 4. Tell the user where you are in the workflow and continue from the next step of that phase.
 
