@@ -33,9 +33,9 @@ Phase 5 visual+behavior QA depends on Chrome MCP. The same server (`chrome-devto
 
 | Harness | How to install Chrome MCP | Tool reference in this skill |
 |---|---|---|
-| Claude Code | Anthropic's plugin (`mcp__claude-in-chrome__*`) **or** `claude mcp add chrome-devtools npx chrome-devtools-mcp@latest` (`mcp__chrome-devtools__*`) | `mcp__<server>__<tool>` |
-| Gemini CLI | `gemini mcp add chrome-devtools npx chrome-devtools-mcp@latest` | tools registered by the `chrome-devtools` MCP server (no `mcp__` prefix) |
-| Codex CLI | `codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest` (adds to `~/.codex/config.toml`) | tools registered by the `chrome_devtools` MCP server |
+| Claude Code | **Preferred:** [Claude for Chrome extension](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) (v1.0.36+) — activate with `claude --chrome` or `/chrome` in-session (Claude Code 2.0.73+; Chrome/Edge only). **Fallback** (WSL, Brave, Arc): `claude mcp add chrome-devtools npx chrome-devtools-mcp@latest`. | `mcp__claude-in-chrome__*` (extension) **or** `mcp__chrome-devtools__*` (fallback) |
+| Gemini CLI | `gemini mcp add chrome-devtools npx chrome-devtools-mcp@latest`. v0.37+ also exposes a `@browser_agent` natural-language shortcut on top of the same server. | tools registered by the `chrome-devtools` MCP server (no `mcp__` prefix) |
+| Codex CLI | `codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest` (writes to `~/.codex/config.toml`). The Codex Chrome extension is currently Codex-app-only and not exposed to the CLI. | tools registered by the `chrome_devtools` MCP server |
 
 If no Chrome MCP server is registered on the current harness, the skill **skips Phase 5 automatically** and prints the manual checklist (see § "Manual checklist fallback").
 
@@ -109,9 +109,10 @@ design-feature ready. Capability matrix:
                                                 ↳ run: markup-cli connect <url>
                                                 ↳ without it: companion-server hosting}
   {chrome:          ✓ Chrome MCP available (server: <server-name>)  |  ✗ no Chrome MCP server registered
-                                              ↳ install on Claude Code: `claude mcp add chrome-devtools npx chrome-devtools-mcp@latest` (or Anthropic's claude-in-chrome plugin)
+                                              ↳ install on Claude Code (preferred): Claude for Chrome extension + `claude --chrome` (Chrome/Edge, Claude Code 2.0.73+)
+                                                                          fallback: `claude mcp add chrome-devtools npx chrome-devtools-mcp@latest` (WSL/Brave/Arc)
                                               ↳ install on Gemini CLI:  `gemini mcp add chrome-devtools npx chrome-devtools-mcp@latest`
-                                              ↳ install on Codex CLI:   `codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest`
+                                              ↳ install on Codex CLI:   `codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest` (Codex Chrome extension is web-app-only)
                                               ↳ without it: Phase 5 falls back to manual checklist}
   {cloudflared:     ✓ cloudflared available  |  — not installed
                                               ↳ install: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
@@ -162,6 +163,59 @@ If 2+ markers match (e.g., `react` + `jquery` in a legacy migration), prompt the
 | `vanilla` | (nenhum esperado) | (native `<form>` validation) | `tailwindcss` (se houver), plain CSS, `sass`/`scss` | (CSS animations, Web Animations API) | `font-awesome`, custom SVG |
 
 Record version strings as printed in `package.json`.
+
+### 0.1.5 Empty / no-framework project flow
+
+**Triggered when ALL of these are true** (i.e., the project is greenfield, not a deliberately-vanilla project):
+
+- 0.1 yielded `framework === 'vanilla'`, AND
+- Either `package.json` is absent at cwd OR its `dependencies` + `devDependencies` are both empty or missing, AND
+- `.markup-design/scratch/strategy.json` does not yet exist for this cwd (otherwise 0.6 resume handles the case where the user already picked).
+
+When any of those is false, skip 0.1.5 and continue to 0.2 with `framework: "vanilla"` — the user *chose* vanilla deliberately and we don't re-prompt.
+
+Print to the user (PT-BR, matching the rest of the skill):
+
+```
+Não encontrei nenhum framework definido em `package.json` (ou o arquivo nem existe ainda).
+
+O design system desta skill é construído **em conjunto com as ferramentas que o projeto vai usar**: variantes, estados e a API de cada componente são modelados pra encaixar nos primitivos do stack escolhido. Isso:
+
+  · evita reinventar a roda em coisas que a lib já resolve (date picker, modal, validação de form, etc.),
+  · facilita a implementação (o gerador já produz código no idioma do stack),
+  · mantém consistência entre o que o DS prescreve e o que o código produz.
+
+Antes de prosseguir, escolha o stack que esse projeto vai adotar:
+
+  1. React
+  2. Vue
+  3. Svelte
+  4. Angular
+  5. Solid
+  6. jQuery
+  7. Vanilla (HTML + CSS puro, sem framework JS)
+  8. Outro (descreva)
+
+Resposta (1-8):
+```
+
+Record the answer:
+
+- **Options 1-7:** set top-level `framework` to the canonical key (`react`, `vue`, `svelte`, `angular`, `solid`, `jquery`, or `vanilla`). Set `detected.framework = "<canonical>@(none)"` — the `@(none)` suffix marks the version slot as "user-picked, no `package.json` evidence yet", to distinguish from the auto-detection path that fills `react@18.3.1` etc. Set `bootstrappedFromEmpty: true` in the `strategy.json` payload (see 0.5).
+- **Option 8 ("Outro"):** follow up with `Descreva o stack (ex.: "Qwik + qwik-ui"):`. Set top-level `framework = "custom"`. Store the free text as `detected.framework = "custom: <free-text>"`. Set `bootstrappedFromEmpty: true`. Run 0.2 to capture agent guidelines (a greenfield repo can still ship `AGENTS.md`/`CLAUDE.md`/`GEMINI.md`), then skip 0.3-0.4 and go directly to 0.5 with `chosen: "custom"` and `freeText: <free-text>`.
+
+For options 1-7, proceed to 0.2 as usual. Step 2 of 0.1 (ecosystem detection) yields empty arrays for every category — that's expected and not an error. In 0.3 the strategy menu is composed with these overrides whenever `bootstrappedFromEmpty === true`:
+
+- The "detection-driven" rule (only add options whose UI lib is in deps) is **suspended** — the project has no deps yet. Show ALL canonical strategies for the chosen framework, in the table order.
+- **Exclude any strategy whose ID contains `tailwind`**, plus the framework-specific exclusions below (these libs are Tailwind-based wrappers):
+
+  | Framework | Also exclude |
+  |---|---|
+  | `svelte` | `svelte-skeleton-max`, `svelte-flowbite-max` |
+
+- If after filtering only `custom` (and/or the vanilla baseline) would remain, that's fine — keep them. Don't synthesize new options to pad the menu.
+
+The picked stack is binding for the rest of the feature. The skill does NOT install packages — that's up to the user or to Phase 4 plan tasks.
 
 ### 0.2 Detect project rules
 
@@ -294,11 +348,14 @@ Write `.markup-design/scratch/strategy.json`:
     "indexMd": "present; UI docs: frontend/INDEX.md"
   },
   "chosenAt": "2026-05-21T...",
-  "freeText": null
+  "freeText": null,
+  "bootstrappedFromEmpty": false
 }
 ```
 
 `framework` is always set (even if `vanilla`). `chosen` is the framework-prefixed strategy ID. The two together resolve uniquely to one row in the §6 strategy-adaptation matrix of the bundled template.
+
+`bootstrappedFromEmpty` is `true` when 0.1.5 ran (no framework markers were detected and the user picked the framework manually). Useful as audit context — e.g., Phase 4 plans can include "install <stack>" tasks first, since the project has no deps yet.
 
 Ensure `.markup-design/` is in `.gitignore` (existing behavior already covers this).
 
@@ -309,6 +366,12 @@ On subsequent skill invocations in the same cwd, if `.markup-design/scratch/stra
 ```
 Estratégia salva: antd visual + react-hook-form (escolhida 2026-05-21).
 Continuar com ela? (sim / change / inspect)
+```
+
+If `bootstrappedFromEmpty === true`, append a pendant to the first line so the user knows the project's `package.json` may still be missing deps when Phase 4 runs:
+
+```
+Estratégia salva: antd visual + react-hook-form (escolhida 2026-05-21, framework escolhido manualmente em projeto vazio).
 ```
 
 - `sim` (or empty input or `y`) → skip Phase 0; proceed to feature setup.
