@@ -689,7 +689,15 @@ Use the `brainstorming` skill's mini-server to host the mockup over HTTP.
 If `s`:
 
 1. Pick a writable log path: `<repo-root>/.markup-design/scratch/<slug>/cloudflared.log`. Run `cloudflared tunnel --url http://localhost:<port> > <log> 2>&1 & echo $! > <pid-file>` so output is captured and the PID is preserved.
-2. Poll `<log>` for a line matching `https://[a-z0-9-]+\.trycloudflare\.com` (on Claude Code: use the `Monitor` tool against the background bash if you started it via `Bash` with `run_in_background: true`; on Gemini CLI / Codex CLI: poll with `tail -n +1 -f <log>` until the regex matches, capped by timeout). Timeout 15s. If no URL appears: read the PID from `<pid-file>` and `kill` it; print a warning; fall back to localhost.
+2. Poll `<log>` for a line matching `https://[a-z0-9-]+\.trycloudflare\.com` (on Claude Code: use the `Monitor` tool against the background bash if you started it via `Bash` with `run_in_background: true`; on Gemini CLI / Codex CLI: poll with `tail -n +1 -f <log>` until the regex matches, capped by timeout). **Timeout** is `MARKUP_TUNNEL_TIMEOUT_MS` if set in the environment (in milliseconds — read via the harness's shell tool, e.g. `printenv MARKUP_TUNNEL_TIMEOUT_MS`), otherwise `15000` (15 seconds). If no URL appears within the timeout: read the PID from `<pid-file>`, `kill` it, then prompt the user (PT-BR):
+
+   > Tunnel não respondeu em `<N>`s. Tentar de novo / pular tunnel / usar localhost? (padrão: localhost)
+
+   `<N>` is the timeout in seconds (i.e. `Math.round(MARKUP_TUNNEL_TIMEOUT_MS / 1000)`, or `15` when the env var is unset). Branch on the user's reply:
+
+   - `tentar de novo` (or `r` / `retry`): re-spawn `cloudflared` with the same arguments, reset the log file, and re-poll with the same timeout. After two retries that both time out, fall through to `usar localhost` automatically and print: `Tunnel falhou duas vezes — caindo pra localhost.`
+   - `pular tunnel` (or `s` / `skip`): same outcome as `usar localhost` (the tunnel was a Cloudflare exposure, the only fallback is localhost) — kept as a distinct option so the user can phrase the decision either way.
+   - `usar localhost` (or empty input — default): continue with the local URL only; print: `Seguindo só com localhost: http://localhost:<port>.`
 3. Store `tunnelUrl` into `state.json:companionServer`. Persist the `pid-file` path so a later "restart tunnel" step can locate and kill the prior process.
 4. Print the tunnel URL as the **primary** link and the localhost URL as a footnote:
 
