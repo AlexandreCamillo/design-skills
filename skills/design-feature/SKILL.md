@@ -45,7 +45,7 @@ This skill composes `brainstorming`, `frontend-design`, `writing-plans` from the
 
 - **Claude Code**: install via `claude plugin install obra/superpowers` (loads `Skill` tool entries).
 - **Gemini CLI**: install via `gemini extensions install obra/superpowers` (exposes `activate_skill`).
-- **Codex CLI**: superpowers does not ship a Codex-native plugin; clone the repo and read each SKILL.md from `~/.codex/superpowers/skills/<name>/SKILL.md` when prompted to "invoke" it.
+- **Codex CLI**: install via the official Codex plugin marketplace — run `/plugins` in-session, search for `superpowers`, and select **Install Plugin**. Fallback if the marketplace is unreachable: clone the repo and symlink it into the Codex skills directory (`gh repo clone obra/superpowers ~/.codex/superpowers && mkdir -p ~/.agents/skills && ln -s ~/.codex/superpowers/skills ~/.agents/skills/superpowers`, then restart Codex). (Verified 2026-05-23 — superpowers now ships a `.codex-plugin/` manifest; `skill-installer` is NOT a supported install path for Codex.)
 
 If a required sub-skill cannot be loaded, the Hard preconditions block below applies.
 
