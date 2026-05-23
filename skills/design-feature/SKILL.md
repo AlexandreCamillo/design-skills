@@ -508,6 +508,8 @@ window.Tweaker.register({
 });
 ```
 
+**Contract on `apply(state, root)`:** the body MUST be limited to direct assignments on `root` — attribute writes (`root.dataset.X`, `root.setAttribute`), inline-style sets (`root.style.setProperty`), or class toggles (`root.classList.add/remove/toggle`). No `querySelector`, no conditionals, no DOM mutation beyond these three primitives. This restriction is what makes Phase 2 bake mechanical: the promote step rewrites each assignment as a literal attribute on the rendered root, which only works if the function's static text already contains the full vocabulary. If a decision can't be expressed this way, model it as a variant in the markup (e.g., `data-variant="A|B|C"`) and let CSS branch.
+
 **Supported `type`s** (canonical set — do **not** invent new ones):
 
 | Type | Maps to | Use for |
