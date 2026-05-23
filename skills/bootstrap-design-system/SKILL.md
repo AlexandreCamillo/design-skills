@@ -31,7 +31,7 @@ When the bootstrap completes:
 1. **superpowers plugin installed.** This skill invokes `brainstorming` to confirm the inventory and may call `frontend-design` for individual port refinements. Abort with the install link if missing.
 2. **`markup-cli` CLI installed.** Used for build, sync-index, check. Recommended (not strictly required) is `>=0.1.0` which has the `bootstrap` sub-commands.
 3. **Chrome MCP server available on the current harness.** This skill SNAPSHOTS the running app — without Chrome MCP the user would have to hand-translate each component, which is more work than starting fresh. Detect the server by looking for: `mcp__claude-in-chrome__*` or `mcp__chrome-devtools__*` on **Claude Code**; tools registered by `chrome-devtools` on **Gemini CLI**; tools registered by `chrome_devtools` on **Codex CLI**. If no Chrome MCP server is registered: refuse with a clear message giving the install path for the active harness — **Claude Code (preferred):** the [Claude for Chrome extension](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) activated with `claude --chrome` or `/chrome` in-session (requires Claude Code 2.0.73+; Chrome/Edge only); fallback for WSL/Brave/Arc: `claude mcp add chrome-devtools npx chrome-devtools-mcp@latest`. **Gemini CLI:** `gemini mcp add chrome-devtools npx chrome-devtools-mcp@latest`. **Codex CLI:** `codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest` (Codex's Chrome extension is currently Codex-app-only, not exposed to the CLI). OR offer to fall back to a "code-only" path where the agent reads each React/Vue file and writes vanilla JS by hand. Default to refuse; only fall back if the user explicitly asks.
-4. **design-feature bundled template available** — `bootstrap-design-system` reads `skills/design-feature/templates/ds-component-pattern.md` during Step C and Step D. The CLI install bundles both skills together (same `design-skills` package), so this is implicit, but if the template file is missing the bootstrap MUST abort with: `❌ HARD: design-feature template not found at templates/ds-component-pattern.md. Reinstall design-skills`.
+4. **design-feature bundled template available** — `bootstrap-design-system` reads `skills/design-feature/templates/ds-component-pattern.md` during Step C and Step D. The CLI install bundles both skills together (same `design-skills` package), so this is implicit, but if the template file is missing the bootstrap MUST abort with: `❌ HARD: template do design-feature não encontrado em templates/ds-component-pattern.md. Reinstale design-skills`.
 
 ## Soft dependency
 
@@ -40,31 +40,32 @@ When the bootstrap completes:
 ## Manage expectations (print at start, BEFORE any other action)
 
 ```
-Bootstrap produces a DRAFT design system from your running app. It is NOT
-finished output. What to expect:
+Bootstrap gera um Design System DRAFT a partir do app rodando. NÃO é
+saída final. O que esperar:
 
-  · Atoms (button, icon, spinner, badge) usually port cleanly.
-  · Molecules with form inputs port well.
-  · Async loading states, drag-and-drop, virtualized lists, and
-    multi-step flows typically need manual cleanup.
-  · Plan for the unexpected — every project surprises.
+  · Atoms (button, icon, spinner, badge) costumam portar limpo.
+  · Molecules com inputs de formulário portam bem.
+  · Estados de loading assíncrono, drag-and-drop, listas virtualizadas e
+    fluxos multi-step geralmente precisam de limpeza manual.
+  · Conte com o imprevisto — todo projeto surpreende.
 
-For ~25 components and ~7 complex ones, expect ~1 day of wall-clock time:
-3-6h of agent work + 2-3h of your gate-keeping.
+Pra ~25 componentes (~7 deles complexos), conte com ~1 dia de wall-clock:
+3-6h de trabalho do agente + 2-3h de gate-keeping seu.
 
-Components are processed in tier order — atoms auto-port, molecules get a
-batch summary review, organisms get a per-item gate. You can pause and resume.
+Componentes são processados em ordem de tier — atoms portam automaticamente,
+molecules recebem revisão em batelada, organisms passam por gate por item.
+Você pode pausar e retomar.
 
-This skill does NOT produce a full-prototype (an assembled page mixing all
-components). It produces individual DS files only. If you want a full-prototype,
-assemble it manually after bootstrap completes.
+Esta skill NÃO produz full-prototype (página assemblada misturando todos os
+componentes). Produz apenas DS files individuais. Se quiser um full-prototype,
+monte manualmente depois do bootstrap terminar.
 
-Repository: https://github.com/AlexandreCamillo/markup-cli-toolkit
+Repositório: https://github.com/AlexandreCamillo/markup-cli-toolkit
 
-Continue? (say "yes" to proceed)
+Continuar? (responda "sim" pra prosseguir)
 ```
 
-Wait for explicit "yes" before proceeding.
+Wait for explicit `"sim"` (case-insensitive) before proceeding. Accept `yes` as a synonym for backwards compatibility with users who already saw the previous English prompt.
 
 ## The 5-step bootstrap (plus Step 0 preamble)
 
@@ -90,12 +91,12 @@ If `.markup-design/scratch/strategy.json` exists at cwd:
 1. Read it.
 2. Print:
    ```
-   Found existing strategy.json from a previous design-feature run:
+   Estratégia salva: encontrei `strategy.json` de um run anterior do design-feature:
      framework: <framework>
      chosen:    <chosen> (<label>)
      saved:     <chosenAt>
 
-   Reuse this strategy for bootstrap? (sim / change / inspect)
+   Reusar essa estratégia pro bootstrap? (sim / change / inspect)
    ```
 3. `sim` → skip 0.2–0.6; proceed to Step A (the existing `strategy.json` is reused as-is).
 4. `change` → run 0.2–0.6; overwrite `strategy.json`.
@@ -142,9 +143,9 @@ Do NOT invoke Step A until:
 2. **Write `.markup-design/bootstrap/inventory.md`** as an editable table:
 
    ```markdown
-   # Bootstrap inventory — review and edit
+   # Bootstrap inventory — revise e edite
 
-   For each row, set `action` to one of: `keep`, `skip`, `merge:<existing-slug>`.
+   Pra cada linha, defina `action` como: `keep`, `skip`, ou `merge:<slug-existente>`.
 
    <!-- The preamble below is printed only when at least one row used the
         regex fallback parser; omit it when every row was parsed via AST. -->
@@ -234,7 +235,7 @@ For each item, Chrome MCP performs:
 
        ```html
        <details>
-         <summary>Strategy fit</summary>
+         <summary>Estratégia bate</summary>
          <p>Esse snippet usa <code>&lt;source-lib&gt;</code>, que casa com a estratégia atual <code>&lt;chosen&gt;</code>. Pode ser copiado direto em features novas que tocam esse DS.</p>
        </details>
        ```
@@ -242,7 +243,7 @@ For each item, Chrome MCP performs:
 
        ```html
        <details>
-         <summary>⚠ Strategy mismatch</summary>
+         <summary>⚠ Estratégia diverge</summary>
          <p>Esse snippet usa <code>&lt;source-lib&gt;</code>. A estratégia escolhida no Phase 0 é <code>&lt;chosen&gt;</code>. Ao implementar features que tocam esse DS, adapte o snippet pra <code>&lt;chosen&gt;</code> seguindo o §6 do template empacotado (<code>templates/ds-component-pattern.md</code>). Não traduza durante o bootstrap — preserve a fonte verbatim pra rastrear de onde veio.</p>
        </details>
        ```
@@ -355,33 +356,32 @@ For each component (in inventory tier order):
    ```markdown
    ## Bootstrap status
 
-   Generated 2026-05-19 from existing code. `partial`/`stub` items need follow-up porting.
+   Gerado em 2026-05-19 a partir do código existente. Itens `partial`/`stub` precisam de port de follow-up.
 
-   | Slug          | JS status | States in matrix | Source                          |
-   |---------------|-----------|------------------|---------------------------------|
-   | sidebar       | partial   | 3                | src/components/Sidebar.tsx      |
-   | avatar-menu   | ported    | 4                | src/components/AvatarMenu.tsx   |
-   | tooltip       | partial   | 0 (matrix empty) | src/components/Tooltip.tsx      |
-   | …             | …         | …                | …                               |
+   | Slug          | JS status | Estados na matrix | Fonte                          |
+   |---------------|-----------|-------------------|--------------------------------|
+   | sidebar       | partial   | 3                 | src/components/Sidebar.tsx     |
+   | avatar-menu   | ported    | 4                 | src/components/AvatarMenu.tsx  |
+   | tooltip       | partial   | 0 (matrix vazia)  | src/components/Tooltip.tsx     |
+   | …             | …         | …                 | …                              |
    ```
 
 4. **Print a summary:**
 
    ```
-   ✓ DS components: 24 total
-     - 18 ported   (JS funcional, ≥3 states in matrix)
+   ✓ Componentes do DS: 24 no total
+     - 18 ported   (JS funcional, ≥3 estados na matrix)
      -  4 partial  (JS parcial, alguns triggers falham)
      -  2 stub     (apenas referência visual)
 
-   ⚠ Next steps:
-     · Port JS for partial/stub items when you next touch them.
-     · Run `design-feature` for new features going forward. Phase 0 will pick up
-       the strategy you chose during bootstrap (.markup-design/scratch/strategy.json).
-     · Re-run individual snapshots after design changes via:
+   ⚠ Próximos passos:
+     · Portar JS dos itens partial/stub quando você tocar neles de novo.
+     · Rodar `design-feature` pras features novas daqui pra frente. A Phase 0 vai
+       reusar a estratégia que você escolheu no bootstrap (.markup-design/scratch/strategy.json).
+     · Re-rodar snapshots individuais depois de mudanças de design via:
          markup-cli bootstrap snapshot <slug>
-     · If you want a full-prototype assembly: do it manually — this skill
-       produces individual DS files only, not _template.html / _glue.js /
-       full-prototype/index.html.
+     · Pra montar um full-prototype: faz manual — esta skill produz só os
+       DS files individuais, não _template.html / _glue.js / full-prototype/index.html.
    ```
 
 ## Known limitations (document in the bootstrap status section)
@@ -417,7 +417,7 @@ On invocation, list any `.markup-design/bootstrap/state.json` and offer to resum
 
 1. Read the file. Determine the current step from `step`.
 2. Also read `.markup-design/scratch/strategy.json`. Compare both fields:
-   - If `state.json.framework ≠ strategy.json.framework`: prompt `Bootstrap was started under framework "<old>"; project is now "<new>". Continue with the original ("<old>"), or restart Step 0 to re-pick strategy?` Default: continue with original.
-   - If `state.json.strategy ≠ strategy.json.chosen`: prompt `Bootstrap was started under strategy "<old>"; current default is "<new>". Continue with bootstrap's original ("<old>"), or migrate to current ("<new>")?` Default: keep the original.
+   - If `state.json.framework ≠ strategy.json.framework`: prompt `Bootstrap começou com framework "<old>"; o projeto agora é "<new>". Continuar com o original ("<old>") ou refazer o Step 0 pra re-escolher a estratégia?` Default: continue with original.
+   - If `state.json.strategy ≠ strategy.json.chosen`: prompt `Bootstrap começou com estratégia "<old>"; o padrão atual é "<new>". Continuar com o original do bootstrap ("<old>") ou migrar pro atual ("<new>")?` Default: keep the original.
    - If `strategy.json` is absent (rare — user deleted it mid-bootstrap), recreate it from `state.json.framework` + `state.json.strategy` silently.
 3. Resume from `currentSlug` rather than restart.
