@@ -135,7 +135,7 @@ Do NOT invoke Step A until:
 
 1. **Run heuristic detection.** Glob `src/components/**/*.{tsx,jsx,vue,svelte}` (or whatever the project uses). For each file:
    - Extract the default export name → candidate slug.
-   - Parse the file (regex is enough; full AST is overkill) to count props, child elements, conditional branches.
+   - Parse the file to count props, child elements, and conditional branches. Prefer an AST when available: if `@typescript-eslint/parser` resolves under cwd `node_modules` (for `.tsx`/`.jsx`/`.ts`/`.js` files) or `vue-eslint-parser` resolves under cwd `node_modules` (for `.vue` files), use it. Otherwise fall back to regex counting — record `parser: "regex-fallback"` in the per-row inventory note and print the limit notice (see step 2 below) once at the top of `inventory.md`.
    - Classify as **atom** (no children significant, few props), **molecule** (1-2 levels deep, few interactions), **organism** (many children, multiple interactions), **page** (top-level routes — these are NOT components).
 2. **Write `.markup-design/bootstrap/inventory.md`** as an editable table:
 
@@ -143,6 +143,15 @@ Do NOT invoke Step A until:
    # Bootstrap inventory — review and edit
 
    For each row, set `action` to one of: `keep`, `skip`, `merge:<existing-slug>`.
+
+   <!-- The preamble below is printed only when at least one row used the
+        regex fallback parser; omit it when every row was parsed via AST. -->
+
+   > ⚠ Parser fallback em uso: `@typescript-eslint/parser` (ou
+   > `vue-eslint-parser`) não foi encontrado em `node_modules`. As contagens
+   > de props, filhos e branches abaixo vêm de heurísticas regex e podem
+   > subestimar JSX/template aninhado, spread props, ou ternários encadeados.
+   > Instale o parser apropriado e re-rode o Step A pra contagens fiéis.
 
    | Source                              | Tier      | Slug             | Action  | Notes                       |
    |-------------------------------------|-----------|------------------|---------|-----------------------------|
