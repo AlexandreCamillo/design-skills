@@ -108,7 +108,7 @@ design-feature ready. Capability matrix:
                     |  ✗ markup online not connected
                                                 ↳ run: markup-cli connect <url>
                                                 ↳ without it: companion-server hosting}
-  {chrome:          ✓ Chrome MCP available (server: <server-name>)  |  ✗ no Chrome MCP server registered
+  {chrome:          ✓ Chrome MCP available (server: <server-name>, tools resolved into state.json:chromeMcp)  |  ✗ no Chrome MCP server registered
                                               ↳ install on Claude Code (preferred): Claude for Chrome extension + `claude --chrome` (Chrome/Edge, Claude Code 2.0.73+)
                                                                           fallback: `claude mcp add chrome-devtools npx chrome-devtools-mcp@latest` (WSL/Brave/Arc)
                                               ↳ install on Gemini CLI:  `gemini mcp add chrome-devtools npx chrome-devtools-mcp@latest`
@@ -125,6 +125,31 @@ Repository: https://github.com/AlexandreCamillo/markup-cli-toolkit
 ```
 
 Then proceed.
+
+### Chrome MCP tool resolution (once per skill start)
+
+Right after the capability matrix is printed (and before Phase 0 begins), resolve the Chrome MCP tool names for the registered server and persist them under `state.json:chromeMcp`. This abstracts the tool-name differences across servers/harnesses so Phase 5 step instructions can reference `state.json:chromeMcp.X` instead of branching by server name on every step.
+
+Required capabilities and the tool-name resolution table:
+
+| Capability   | `mcp__claude-in-chrome__*` (Anthropic plugin)      | `chrome-devtools-mcp` (Google, all harnesses) |
+|--------------|----------------------------------------------------|-----------------------------------------------|
+| `evaluateJs` | `mcp__claude-in-chrome__javascript_tool`           | `evaluate_script`                             |
+| `screenshot` | `mcp__claude-in-chrome__upload_image` (via page capture) or browser shortcut equivalent | `take_screenshot`                |
+| `click`      | `mcp__claude-in-chrome__computer` (action=click) or `form_input` for inputs | `click`                          |
+| `hover`      | `mcp__claude-in-chrome__computer` (action=hover)   | `hover`                                       |
+| `focus`      | `mcp__claude-in-chrome__computer` (action=focus) or `javascript_tool` with `.focus()` | `focus` (or `evaluate_script`) |
+| `type`       | `mcp__claude-in-chrome__form_input`                | `type`                                        |
+| `navigate`   | `mcp__claude-in-chrome__navigate`                  | `navigate_page`                               |
+
+Procedure on skill start (after the disclaimer prints and before Phase 0):
+
+1. Detect which Chrome MCP server is registered on the current harness (same detection as soft-dependency 3 above).
+2. Build a `chromeMcp` object by mapping each capability to the resolved tool name for that server. If a capability has no direct tool on the active server, fall back to its `evaluateJs` slot (so `focus` becomes "call `evaluateJs` with `document.querySelector(sel).focus()`"). Document the fallback explicitly in the value as a comment string when needed.
+3. If no Chrome MCP server is registered, set `chromeMcp = null` — Phase 5 will use the manual checklist fallback.
+4. Persist the object as a sibling field of `companionServer` in the per-feature `state.json` once the feature slug is known (i.e., on the first `state.json` write of the feature). Until then, hold it in memory.
+
+All Phase 5 step instructions reference `state.json:chromeMcp.<capability>` consistently. Do **not** branch by server name inside Phase 5 — the resolution happens once, here.
 
 ## Phase 0 — Project discovery + framework + strategy choice
 
