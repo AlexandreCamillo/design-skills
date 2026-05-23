@@ -285,7 +285,7 @@ Update sub-plan status here as work progresses. Each Sub-plan gets its own bite-
 
 | # | Sub-plan | Status | PR | Detailed plan |
 |---|---|---|---|---|
-| 1 | Tweaker contract + Phase 2 invariants | planned | — | — |
+| 1 | Tweaker contract + Phase 2 invariants | in-flight | (PR pending) | docs/superpowers/plans/2026-05-23-sp-1-tweaker-contract.md |
 | 2 | Phase 5 QA hardening | planned | — | — |
 | 3 | Strategy single-source-of-truth | planned | — | — |
 | 4 | Phase 4 enforcement | planned | — | — |
