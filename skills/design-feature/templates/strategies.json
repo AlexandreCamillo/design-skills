@@ -1,0 +1,694 @@
+{
+  "schemaVersion": 1,
+  "frameworks": ["react", "vue", "svelte", "angular", "solid", "jquery", "vanilla", "custom"],
+  "strategies": [
+    {
+      "id": "react-antd-max",
+      "framework": "react",
+      "label": "antd ao máximo",
+      "markers": {
+        "ui": ["antd"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": ["react-hook-form"]
+      },
+      "adaptation": "`import { Form, Input, Button } from 'antd'`. Map each `data-state` to the matching antd prop (`validateStatus`, `status`, `loading`, `disabled`).",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { Form, Input, Button } from 'antd';\n\n<Form layout=\"vertical\" onFinish={values => console.log(values)}>\n  <Form.Item name=\"name\" label=\"Name\" rules={[{ required: true }, { pattern: /^[a-z0-9-]+$/, message: 'Lowercase, digits, hyphens only.' }]}>\n    <Input />\n  </Form.Item>\n  <Button type=\"primary\" htmlType=\"submit\">Submit</Button>\n</Form>"
+    },
+    {
+      "id": "react-antd-rhf",
+      "framework": "react",
+      "label": "antd visual + react-hook-form",
+      "markers": {
+        "ui": ["antd"],
+        "form": ["react-hook-form"],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`import { Controller, useForm } from 'react-hook-form'` + antd controls inside `<Controller>`.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { Controller, useForm } from 'react-hook-form';\nimport { Form, Input } from 'antd';\n\nconst { control } = useForm();\n\n<Form layout=\"vertical\">\n  <Controller\n    name=\"name\"\n    control={control}\n    rules={{ required: 'Required', pattern: { value: /^[a-z0-9-]+$/, message: 'Lowercase, digits, hyphens only.' } }}\n    render={({ field, fieldState }) => (\n      <Form.Item label=\"Name\" validateStatus={fieldState.invalid ? 'error' : ''} help={fieldState.error?.message}>\n        <Input {...field} />\n      </Form.Item>\n    )}\n  />\n</Form>"
+    },
+    {
+      "id": "react-radix-primitives",
+      "framework": "react",
+      "label": "Compor primitives @radix-ui",
+      "markers": {
+        "ui": ["@radix-ui/react-form"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`import * as Form from '@radix-ui/react-form'` + compound primitives + `asChild` slot.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import * as Form from '@radix-ui/react-form';\n\n<Form.Root onSubmit={e => { e.preventDefault(); }}>\n  <Form.Field name=\"name\">\n    <Form.Label>Name</Form.Label>\n    <Form.Control asChild>\n      <input required pattern=\"[a-z0-9-]+\" />\n    </Form.Control>\n    <Form.Message match=\"valueMissing\">Required.</Form.Message>\n    <Form.Message match=\"patternMismatch\">Lowercase, digits, hyphens only.</Form.Message>\n  </Form.Field>\n  <Form.Submit>Submit</Form.Submit>\n</Form.Root>"
+    },
+    {
+      "id": "react-mui-max",
+      "framework": "react",
+      "label": "MUI primitives nativamente",
+      "markers": {
+        "ui": ["@mui/material"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": ["react-hook-form"]
+      },
+      "adaptation": "`import { TextField, Button } from '@mui/material'` + MUI props.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { TextField, Button } from '@mui/material';\nimport { useState } from 'react';\n\nconst [name, setName] = useState('');\nconst error = name && !/^[a-z0-9-]+$/.test(name);\n\n<form onSubmit={e => e.preventDefault()}>\n  <TextField label=\"Name\" value={name} onChange={e => setName(e.target.value)}\n    required error={!!error} helperText={error ? 'Lowercase, digits, hyphens only.' : ''} />\n  <Button type=\"submit\" variant=\"contained\">Submit</Button>\n</form>"
+    },
+    {
+      "id": "react-mui-rhf",
+      "framework": "react",
+      "label": "MUI visual + react-hook-form",
+      "markers": {
+        "ui": ["@mui/material"],
+        "form": ["react-hook-form"],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "MUI controls wrapped in `<Controller>`.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { Controller, useForm } from 'react-hook-form';\nimport { TextField, Button } from '@mui/material';\n\nconst { control, handleSubmit } = useForm();\n\n<form onSubmit={handleSubmit(console.log)}>\n  <Controller name=\"name\" control={control}\n    rules={{ required: 'Required', pattern: { value: /^[a-z0-9-]+$/, message: 'Lowercase, digits, hyphens only.' } }}\n    render={({ field, fieldState }) => (\n      <TextField {...field} label=\"Name\" required error={!!fieldState.error} helperText={fieldState.error?.message} />\n    )} />\n  <Button type=\"submit\" variant=\"contained\">Submit</Button>\n</form>"
+    },
+    {
+      "id": "react-chakra-max",
+      "framework": "react",
+      "label": "Chakra primitives",
+      "markers": {
+        "ui": ["@chakra-ui/react"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`import { Input, FormControl, FormLabel } from '@chakra-ui/react'`.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { Input, FormControl, FormLabel, FormErrorMessage, Button } from '@chakra-ui/react';\nimport { useState } from 'react';\n\nconst [name, setName] = useState('');\nconst isInvalid = name !== '' && !/^[a-z0-9-]+$/.test(name);\n\n<form onSubmit={e => e.preventDefault()}>\n  <FormControl isRequired isInvalid={isInvalid}>\n    <FormLabel>Name</FormLabel>\n    <Input value={name} onChange={e => setName(e.target.value)} />\n    <FormErrorMessage>Lowercase, digits, hyphens only.</FormErrorMessage>\n  </FormControl>\n  <Button type=\"submit\" mt={4} colorScheme=\"blue\">Submit</Button>\n</form>"
+    },
+    {
+      "id": "react-mantine-max",
+      "framework": "react",
+      "label": "Mantine primitives",
+      "markers": {
+        "ui": ["@mantine/core"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`import { TextInput, Button } from '@mantine/core'`.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { TextInput, Button } from '@mantine/core';\nimport { useForm } from '@mantine/form';\n\nconst form = useForm({\n  initialValues: { name: '' },\n  validate: { name: v => /^[a-z0-9-]+$/.test(v) ? null : 'Lowercase, digits, hyphens only.' },\n});\n\n<form onSubmit={form.onSubmit(console.log)}>\n  <TextInput label=\"Name\" required {...form.getInputProps('name')} />\n  <Button type=\"submit\" mt=\"sm\">Submit</Button>\n</form>"
+    },
+    {
+      "id": "react-headlessui-tailwind",
+      "framework": "react",
+      "label": "Headless UI + Tailwind",
+      "markers": {
+        "ui": ["@headlessui/react"],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`@headlessui/react` for behavior + Tailwind utility classes.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { Field, Label, Input } from '@headlessui/react';\nimport { useState } from 'react';\n\nconst [name, setName] = useState('');\nconst error = name !== '' && !/^[a-z0-9-]+$/.test(name);\n\n<form onSubmit={e => e.preventDefault()} className=\"flex flex-col gap-4\">\n  <Field>\n    <Label className=\"text-sm font-medium\">Name</Label>\n    <Input value={name} onChange={e => setName(e.target.value)} required\n      className=\"mt-1 block w-full rounded border px-3 py-2 data-[invalid]:border-red-500\" data-invalid={error || undefined} />\n    {error && <p className=\"mt-1 text-xs text-red-600\">Lowercase, digits, hyphens only.</p>}\n  </Field>\n  <button type=\"submit\" className=\"rounded bg-blue-600 px-4 py-2 text-white\">Submit</button>\n</form>"
+    },
+    {
+      "id": "react-bootstrap-max",
+      "framework": "react",
+      "label": "react-bootstrap",
+      "markers": {
+        "ui": ["react-bootstrap"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`import { Form, Button } from 'react-bootstrap'` + Bootstrap classes. Validation via `isInvalid` prop + `<Form.Control.Feedback>`.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { useState } from 'react';\nimport { Form, Button } from 'react-bootstrap';\n\nconst [name, setName] = useState('');\nconst invalid = name !== '' && !/^[a-z0-9-]+$/.test(name);\n\n<Form noValidate>\n  <Form.Group className=\"mb-3\">\n    <Form.Label>Name</Form.Label>\n    <Form.Control type=\"text\" value={name} onChange={e => setName(e.target.value)}\n      required pattern=\"[a-z0-9-]+\" isInvalid={invalid} />\n    <Form.Control.Feedback type=\"invalid\">Lowercase, digits, hyphens only.</Form.Control.Feedback>\n  </Form.Group>\n  <Button type=\"submit\" variant=\"primary\">Submit</Button>\n</Form>"
+    },
+    {
+      "id": "react-shadcn-tailwind",
+      "framework": "react",
+      "label": "shadcn/ui + Tailwind",
+      "markers": {
+        "ui": ["@radix-ui/react-slot", "class-variance-authority"],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": ["lucide-react"],
+        "exclude": []
+      },
+      "adaptation": "Local `components/ui/*` (e.g., `Input`, `Button`) generated by the shadcn/ui CLI — copies of Radix primitives styled with Tailwind + `cva`. Imports look like `import { Input } from '@/components/ui/input'`. Validation via native HTML `required`/`pattern` or layered with react-hook-form.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { Input } from '@/components/ui/input';\nimport { Label } from '@/components/ui/label';\nimport { Button } from '@/components/ui/button';\nimport { useState } from 'react';\n\nconst [name, setName] = useState('');\nconst error = name !== '' && !/^[a-z0-9-]+$/.test(name);\n\n<form onSubmit={e => e.preventDefault()} className=\"flex flex-col gap-4\">\n  <div className=\"flex flex-col gap-1\">\n    <Label htmlFor=\"name\">Name</Label>\n    <Input id=\"name\" value={name} onChange={e => setName(e.target.value)} required\n      aria-invalid={error || undefined}\n      className={error ? 'border-destructive focus-visible:ring-destructive' : undefined} />\n    {error && <p className=\"text-xs text-destructive\">Lowercase, digits, hyphens only.</p>}\n  </div>\n  <Button type=\"submit\">Submit</Button>\n</form>"
+    },
+    {
+      "id": "react-vanilla-tailwind",
+      "framework": "react",
+      "label": "Tailwind only (sem UI lib)",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": [],
+        "exclude": ["antd", "@radix-ui/react-form", "@mui/material", "@chakra-ui/react", "@mantine/core", "@headlessui/react", "react-bootstrap", "@radix-ui/react-slot"]
+      },
+      "adaptation": "Native HTML + Tailwind utilities; no UI lib imports.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { useState } from 'react';\n\nconst [name, setName] = useState('');\nconst error = name !== '' && !/^[a-z0-9-]+$/.test(name);\n\n<form onSubmit={e => e.preventDefault()} className=\"flex flex-col gap-4\">\n  <label className=\"flex flex-col gap-1 text-sm font-medium\">\n    Name\n    <input value={name} onChange={e => setName(e.target.value)} required\n      className={`rounded border px-3 py-2 ${error ? 'border-red-500' : 'border-gray-300'}`} />\n    {error && <span className=\"text-xs text-red-600\">Lowercase, digits, hyphens only.</span>}\n  </label>\n  <button type=\"submit\" className=\"rounded bg-blue-600 px-4 py-2 text-white\">Submit</button>\n</form>"
+    },
+    {
+      "id": "react-vanilla",
+      "framework": "react",
+      "label": "Native HTML/JSX + CSS",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": ["antd", "@radix-ui/react-form", "@mui/material", "@chakra-ui/react", "@mantine/core", "@headlessui/react", "react-bootstrap", "@radix-ui/react-slot", "tailwindcss"]
+      },
+      "adaptation": "Native HTML + BEM classes; no UI lib imports.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { useState } from 'react';\n\nconst [name, setName] = useState('');\nconst error = name !== '' && !/^[a-z0-9-]+$/.test(name);\n\n<form onSubmit={e => e.preventDefault()} className=\"form\">\n  <label className=\"form__label\">\n    Name\n    <input value={name} onChange={e => setName(e.target.value)} required\n      className={`form__input${error ? ' form__input--error' : ''}`} />\n    {error && <span className=\"form__error\">Lowercase, digits, hyphens only.</span>}\n  </label>\n  <button type=\"submit\" className=\"form__submit\">Submit</button>\n</form>"
+    },
+    {
+      "id": "vue-vuetify-max",
+      "framework": "vue",
+      "label": "Vuetify ao máximo",
+      "markers": {
+        "ui": ["vuetify"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": ["vee-validate"]
+      },
+      "adaptation": "`<v-text-field>`, `<v-btn>`, `<v-form>` with Vuetify props. `<script setup>` syntax.",
+      "snippetLang": "vue",
+      "canonicalSnippet": "<script setup>\nimport { ref } from 'vue';\nconst name = ref('');\nconst rules = [v => !!v || 'Required', v => /^[a-z0-9-]+$/.test(v) || 'Lowercase, digits, hyphens only.'];\n</script>\n\n<template>\n  <v-form @submit.prevent>\n    <v-text-field v-model=\"name\" label=\"Name\" :rules=\"rules\" required />\n    <v-btn type=\"submit\" color=\"primary\">Submit</v-btn>\n  </v-form>\n</template>"
+    },
+    {
+      "id": "vue-vuetify-vee",
+      "framework": "vue",
+      "label": "Vuetify + vee-validate",
+      "markers": {
+        "ui": ["vuetify"],
+        "form": ["vee-validate"],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "Vuetify controls inside `<Field>` from `vee-validate` (`useForm` + `useField`).",
+      "snippetLang": "vue",
+      "canonicalSnippet": "<script setup>\nimport { useForm, useField } from 'vee-validate';\nconst { handleSubmit } = useForm();\nconst { value: name, errorMessage } = useField('name', v =>\n  /^[a-z0-9-]+$/.test(v) ? true : 'Lowercase, digits, hyphens only.'\n);\n</script>\n\n<template>\n  <v-form @submit.prevent=\"handleSubmit\">\n    <v-text-field v-model=\"name\" label=\"Name\" :error-messages=\"errorMessage\" />\n    <v-btn type=\"submit\">Submit</v-btn>\n  </v-form>\n</template>"
+    },
+    {
+      "id": "vue-element-plus-max",
+      "framework": "vue",
+      "label": "Element Plus",
+      "markers": {
+        "ui": ["element-plus"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`<el-input>`, `<el-button>`, `<el-form>` with Element Plus props.",
+      "snippetLang": "vue",
+      "canonicalSnippet": "<script setup>\nimport { ref, reactive } from 'vue';\nconst form = reactive({ name: '' });\nconst rules = { name: [{ required: true, message: 'Required' }, { pattern: /^[a-z0-9-]+$/, message: 'Lowercase, digits, hyphens only.' }] };\n</script>\n\n<template>\n  <el-form :model=\"form\" :rules=\"rules\" label-position=\"top\" @submit.prevent>\n    <el-form-item label=\"Name\" prop=\"name\">\n      <el-input v-model=\"form.name\" />\n    </el-form-item>\n    <el-button type=\"primary\" native-type=\"submit\">Submit</el-button>\n  </el-form>\n</template>"
+    },
+    {
+      "id": "vue-naive-max",
+      "framework": "vue",
+      "label": "Naive UI",
+      "markers": {
+        "ui": ["naive-ui"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`<n-input>`, `<n-button>`, `<n-form>` with Naive UI props.",
+      "snippetLang": "vue",
+      "canonicalSnippet": "<script setup>\nimport { ref } from 'vue';\nconst formValue = ref({ name: '' });\nconst rules = { name: { required: true, trigger: 'blur', validator: (rule, v) => /^[a-z0-9-]+$/.test(v) ? Promise.resolve() : Promise.reject('Lowercase, digits, hyphens only.') } };\n</script>\n\n<template>\n  <n-form :model=\"formValue\" :rules=\"rules\">\n    <n-form-item label=\"Name\" path=\"name\">\n      <n-input v-model:value=\"formValue.name\" placeholder=\"Enter name\" />\n    </n-form-item>\n    <n-button type=\"primary\" attr-type=\"submit\">Submit</n-button>\n  </n-form>\n</template>"
+    },
+    {
+      "id": "vue-primevue-max",
+      "framework": "vue",
+      "label": "PrimeVue",
+      "markers": {
+        "ui": ["primevue"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`<InputText>`, `<Button>` from PrimeVue.",
+      "snippetLang": "vue",
+      "canonicalSnippet": "<script setup>\nimport { ref } from 'vue';\nimport InputText from 'primevue/inputtext';\nimport Button from 'primevue/button';\nconst name = ref('');\nconst error = ref('');\nfunction validate() { error.value = /^[a-z0-9-]+$/.test(name.value) ? '' : 'Lowercase, digits, hyphens only.'; }\n</script>\n\n<template>\n  <form @submit.prevent=\"validate\" class=\"flex flex-col gap-3\">\n    <label class=\"flex flex-col gap-1\">Name\n      <InputText v-model=\"name\" required :class=\"{ 'p-invalid': error }\" />\n      <small class=\"p-error\">{{ error }}</small>\n    </label>\n    <Button type=\"submit\" label=\"Submit\" />\n  </form>\n</template>"
+    },
+    {
+      "id": "vue-quasar-max",
+      "framework": "vue",
+      "label": "Quasar",
+      "markers": {
+        "ui": ["quasar"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`<q-input>`, `<q-btn>`, `<q-form>` from Quasar.",
+      "snippetLang": "vue",
+      "canonicalSnippet": "<script setup>\nimport { ref } from 'vue';\nconst name = ref('');\nconst nameRules = [v => !!v || 'Required', v => /^[a-z0-9-]+$/.test(v) || 'Lowercase, digits, hyphens only.'];\n</script>\n\n<template>\n  <q-form @submit.prevent>\n    <q-input v-model=\"name\" label=\"Name\" :rules=\"nameRules\" lazy-rules />\n    <q-btn type=\"submit\" color=\"primary\" label=\"Submit\" />\n  </q-form>\n</template>"
+    },
+    {
+      "id": "vue-antdv-rhf",
+      "framework": "vue",
+      "label": "Ant Design Vue + vee-validate",
+      "markers": {
+        "ui": ["ant-design-vue"],
+        "form": ["vee-validate"],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`import { Form, FormItem, Input, Button } from 'ant-design-vue'` + vee-validate's `useForm` + `useField`. Wire each `FormItem`'s `validate-status` and `help` to the field's error state from vee-validate.",
+      "snippetLang": "vue",
+      "canonicalSnippet": "<script setup>\nimport { Form, FormItem, Input, Button } from 'ant-design-vue';\nimport { useForm, useField } from 'vee-validate';\n\nconst { handleSubmit } = useForm();\nconst { value: name, errorMessage } = useField('name', v =>\n  /^[a-z0-9-]+$/.test(v) ? true : 'Lowercase, digits, hyphens only.'\n);\nconst onSubmit = handleSubmit(values => console.log(values));\n</script>\n\n<template>\n  <Form layout=\"vertical\" @submit.prevent=\"onSubmit\">\n    <FormItem label=\"Name\" :validate-status=\"errorMessage ? 'error' : ''\" :help=\"errorMessage\">\n      <Input v-model:value=\"name\" />\n    </FormItem>\n    <Button type=\"primary\" html-type=\"submit\">Submit</Button>\n  </Form>\n</template>"
+    },
+    {
+      "id": "vue-vanilla-tailwind",
+      "framework": "vue",
+      "label": "Tailwind only",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": [],
+        "exclude": ["vuetify", "element-plus", "naive-ui", "primevue", "quasar", "ant-design-vue"]
+      },
+      "adaptation": "Native `<input>` + Tailwind utilities in `<template>`.",
+      "snippetLang": "vue",
+      "canonicalSnippet": "<script setup>\nimport { ref, computed } from 'vue';\nconst name = ref('');\nconst error = computed(() => name.value && !/^[a-z0-9-]+$/.test(name.value) ? 'Lowercase, digits, hyphens only.' : '');\n</script>\n\n<template>\n  <form @submit.prevent class=\"flex flex-col gap-4\">\n    <label class=\"flex flex-col gap-1 text-sm font-medium\">Name\n      <input v-model=\"name\" required :class=\"['rounded border px-3 py-2', error ? 'border-red-500' : 'border-gray-300']\" />\n      <span v-if=\"error\" class=\"text-xs text-red-600\">{{ error }}</span>\n    </label>\n    <button type=\"submit\" class=\"rounded bg-blue-600 px-4 py-2 text-white\">Submit</button>\n  </form>\n</template>"
+    },
+    {
+      "id": "vue-vanilla",
+      "framework": "vue",
+      "label": "Native SFC + CSS",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": ["vuetify", "element-plus", "naive-ui", "primevue", "quasar", "ant-design-vue", "tailwindcss"]
+      },
+      "adaptation": "Native SFC `<template>` + scoped `<style>`.",
+      "snippetLang": "vue",
+      "canonicalSnippet": "<script setup>\nimport { ref, computed } from 'vue';\nconst name = ref('');\nconst error = computed(() => name.value && !/^[a-z0-9-]+$/.test(name.value) ? 'Lowercase, digits, hyphens only.' : '');\n</script>\n\n<template>\n  <form @submit.prevent class=\"form\">\n    <label class=\"form__label\">Name\n      <input v-model=\"name\" required :class=\"['form__input', { 'form__input--error': error }]\" />\n      <span v-if=\"error\" class=\"form__error\">{{ error }}</span>\n    </label>\n    <button type=\"submit\" class=\"form__submit\">Submit</button>\n  </form>\n</template>\n\n<style scoped>\n.form { display: flex; flex-direction: column; gap: 1rem; }\n.form__label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; }\n.form__input { border: 1px solid #d1d5db; border-radius: 4px; padding: 0.5rem 0.75rem; }\n.form__input--error { border-color: #ef4444; }\n.form__error { color: #ef4444; font-size: 0.75rem; }\n</style>"
+    },
+    {
+      "id": "svelte-skeleton-max",
+      "framework": "svelte",
+      "label": "Skeleton (Tailwind-based)",
+      "markers": {
+        "ui": ["@skeletonlabs/skeleton"],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "Skeleton components + Tailwind utility classes.",
+      "snippetLang": "svelte",
+      "canonicalSnippet": "<script>\n  import { InputChip } from '@skeletonlabs/skeleton';\n  let name = '';\n  let error = '';\n  function validate() { error = /^[a-z0-9-]+$/.test(name) ? '' : 'Lowercase, digits, hyphens only.'; }\n</script>\n\n<form on:submit|preventDefault={validate} class=\"flex flex-col gap-4\">\n  <label class=\"label\"><span>Name</span>\n    <input class=\"input\" class:input-error={error} bind:value={name} required />\n    {#if error}<span class=\"text-error-500 text-xs\">{error}</span>{/if}\n  </label>\n  <button type=\"submit\" class=\"btn variant-filled-primary\">Submit</button>\n</form>"
+    },
+    {
+      "id": "svelte-flowbite-max",
+      "framework": "svelte",
+      "label": "Flowbite Svelte",
+      "markers": {
+        "ui": ["flowbite-svelte"],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`import { Input, Button } from 'flowbite-svelte'`.",
+      "snippetLang": "svelte",
+      "canonicalSnippet": "<script>\n  import { Input, Button, Label, Helper } from 'flowbite-svelte';\n  let name = '';\n  let error = '';\n  function validate() { error = /^[a-z0-9-]+$/.test(name) ? '' : 'Lowercase, digits, hyphens only.'; }\n</script>\n\n<form on:submit|preventDefault={validate} class=\"flex flex-col gap-4\">\n  <Label>Name\n    <Input bind:value={name} required color={error ? 'red' : 'base'} />\n    {#if error}<Helper color=\"red\">{error}</Helper>{/if}\n  </Label>\n  <Button type=\"submit\">Submit</Button>\n</form>"
+    },
+    {
+      "id": "svelte-sveltestrap-max",
+      "framework": "svelte",
+      "label": "Sveltestrap (Bootstrap)",
+      "markers": {
+        "ui": ["sveltestrap"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`import { Input, Button } from 'sveltestrap'`.",
+      "snippetLang": "svelte",
+      "canonicalSnippet": "<script>\n  import { FormGroup, Input, Label, Button, FormFeedback } from 'sveltestrap';\n  let name = '';\n  let dirty = false;\n  $: invalid = dirty && !/^[a-z0-9-]+$/.test(name);\n</script>\n\n<form on:submit|preventDefault={() => (dirty = true)}>\n  <FormGroup>\n    <Label>Name</Label>\n    <Input type=\"text\" bind:value={name} {invalid} required />\n    <FormFeedback>Lowercase, digits, hyphens only.</FormFeedback>\n  </FormGroup>\n  <Button type=\"submit\" color=\"primary\">Submit</Button>\n</form>"
+    },
+    {
+      "id": "svelte-melt-tailwind",
+      "framework": "svelte",
+      "label": "Melt UI + Tailwind",
+      "markers": {
+        "ui": ["@melt-ui/svelte"],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "Melt UI builders (`createCombobox`, `createDialog`) + Tailwind classes.",
+      "snippetLang": "svelte",
+      "canonicalSnippet": "<script>\n  import { createLabel } from '@melt-ui/svelte';\n  let name = '';\n  let error = '';\n  const { elements: { root: label } } = createLabel();\n  function validate() { error = /^[a-z0-9-]+$/.test(name) ? '' : 'Lowercase, digits, hyphens only.'; }\n</script>\n\n<form on:submit|preventDefault={validate} class=\"flex flex-col gap-4\">\n  <div class=\"flex flex-col gap-1\">\n    <label use:label class=\"text-sm font-medium\">Name</label>\n    <input bind:value={name} required class=\"rounded border px-3 py-2 {error ? 'border-red-500' : 'border-gray-300'}\" />\n    {#if error}<span class=\"text-xs text-red-600\">{error}</span>{/if}\n  </div>\n  <button type=\"submit\" class=\"rounded bg-blue-600 px-4 py-2 text-white\">Submit</button>\n</form>"
+    },
+    {
+      "id": "svelte-vanilla-tailwind",
+      "framework": "svelte",
+      "label": "Tailwind only",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": [],
+        "exclude": ["@skeletonlabs/skeleton", "flowbite-svelte", "sveltestrap", "@melt-ui/svelte"]
+      },
+      "adaptation": "Native `<input>` + Tailwind utility classes.",
+      "snippetLang": "svelte",
+      "canonicalSnippet": "<script>\n  let name = '';\n  let error = '';\n  function validate() { error = /^[a-z0-9-]+$/.test(name) ? '' : 'Lowercase, digits, hyphens only.'; }\n</script>\n\n<form on:submit|preventDefault={validate} class=\"flex flex-col gap-4\">\n  <label class=\"flex flex-col gap-1 text-sm font-medium\">Name\n    <input bind:value={name} required class=\"rounded border px-3 py-2 {error ? 'border-red-500' : 'border-gray-300'}\" />\n    {#if error}<span class=\"text-xs text-red-600\">{error}</span>{/if}\n  </label>\n  <button type=\"submit\" class=\"rounded bg-blue-600 px-4 py-2 text-white\">Submit</button>\n</form>"
+    },
+    {
+      "id": "svelte-vanilla",
+      "framework": "svelte",
+      "label": "Native .svelte + CSS",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": ["@skeletonlabs/skeleton", "flowbite-svelte", "sveltestrap", "@melt-ui/svelte", "tailwindcss"]
+      },
+      "adaptation": "Native `<input>` + `<style>` scoped.",
+      "snippetLang": "svelte",
+      "canonicalSnippet": "<script>\n  let name = '';\n  let error = '';\n  function validate() { error = /^[a-z0-9-]+$/.test(name) ? '' : 'Lowercase, digits, hyphens only.'; }\n</script>\n\n<form on:submit|preventDefault={validate} class=\"form\">\n  <label class=\"form__label\">Name\n    <input bind:value={name} required class=\"form__input\" class:form__input--error={error} />\n    {#if error}<span class=\"form__error\">{error}</span>{/if}\n  </label>\n  <button type=\"submit\" class=\"form__submit\">Submit</button>\n</form>\n\n<style>\n  .form { display: flex; flex-direction: column; gap: 1rem; }\n  .form__label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.875rem; }\n  .form__input { border: 1px solid #d1d5db; border-radius: 4px; padding: 0.5rem 0.75rem; }\n  .form__input--error { border-color: #ef4444; }\n  .form__error { color: #ef4444; font-size: 0.75rem; }\n</style>"
+    },
+    {
+      "id": "angular-material-max",
+      "framework": "angular",
+      "label": "Angular Material",
+      "markers": {
+        "ui": ["@angular/material"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`<mat-form-field>` + `matInput` + `<button mat-button>`. ReactiveForms (`FormControl`, `FormGroup`) wired via `formControlName`.",
+      "snippetLang": "typescript",
+      "canonicalSnippet": "// signup.component.ts\nimport { Component } from '@angular/core';\nimport { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';\nimport { MatFormFieldModule } from '@angular/material/form-field';\nimport { MatInputModule } from '@angular/material/input';\nimport { MatButtonModule } from '@angular/material/button';\n\n@Component({\n  selector: 'app-signup',\n  standalone: true,\n  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule],\n  template: `\n    <form [formGroup]=\"form\" (ngSubmit)=\"form.valid && onSubmit()\">\n      <mat-form-field appearance=\"outline\">\n        <mat-label>Name</mat-label>\n        <input matInput formControlName=\"name\" required />\n        <mat-error>Lowercase, digits, hyphens only.</mat-error>\n      </mat-form-field>\n      <button mat-raised-button color=\"primary\" type=\"submit\">Submit</button>\n    </form>`,\n})\nexport class SignupComponent {\n  form = new FormGroup({ name: new FormControl('', [Validators.required, Validators.pattern(/^[a-z0-9-]+$/)]) });\n  onSubmit() { console.log(this.form.value); }\n}"
+    },
+    {
+      "id": "angular-primeng-max",
+      "framework": "angular",
+      "label": "PrimeNG",
+      "markers": {
+        "ui": ["primeng"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`<p-inputText>`, `<p-button>` + ReactiveForms.",
+      "snippetLang": "typescript",
+      "canonicalSnippet": "// signup.component.ts\nimport { Component } from '@angular/core';\nimport { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';\nimport { InputTextModule } from 'primeng/inputtext';\nimport { ButtonModule } from 'primeng/button';\n\n@Component({\n  selector: 'app-signup',\n  standalone: true,\n  imports: [ReactiveFormsModule, InputTextModule, ButtonModule],\n  template: `\n    <form [formGroup]=\"form\" (ngSubmit)=\"form.valid && onSubmit()\" class=\"flex flex-col gap-3\">\n      <label class=\"flex flex-col gap-1 text-sm\">Name\n        <input pInputText formControlName=\"name\" required [class.ng-invalid]=\"form.controls.name.invalid && form.controls.name.dirty\" />\n        <small *ngIf=\"form.controls.name.errors?.['pattern']\" class=\"text-red-500\">Lowercase, digits, hyphens only.</small>\n      </label>\n      <p-button type=\"submit\" label=\"Submit\" />\n    </form>`,\n})\nexport class SignupComponent {\n  form = new FormGroup({ name: new FormControl('', [Validators.required, Validators.pattern(/^[a-z0-9-]+$/)]) });\n  onSubmit() { console.log(this.form.value); }\n}"
+    },
+    {
+      "id": "angular-ngbootstrap-max",
+      "framework": "angular",
+      "label": "NG Bootstrap",
+      "markers": {
+        "ui": ["@ng-bootstrap/ng-bootstrap"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "NG Bootstrap directives + Bootstrap classes + ReactiveForms.",
+      "snippetLang": "typescript",
+      "canonicalSnippet": "// signup.component.ts\nimport { Component } from '@angular/core';\nimport { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';\nimport { NgbModule } from '@ng-bootstrap/ng-bootstrap';\n\n@Component({\n  selector: 'app-signup',\n  standalone: true,\n  imports: [ReactiveFormsModule, NgbModule],\n  template: `\n    <form [formGroup]=\"form\" (ngSubmit)=\"form.valid && onSubmit()\">\n      <div class=\"mb-3\">\n        <label class=\"form-label\">Name</label>\n        <input class=\"form-control\" formControlName=\"name\" required\n          [class.is-invalid]=\"form.controls.name.invalid && form.controls.name.dirty\" />\n        <div class=\"invalid-feedback\">Lowercase, digits, hyphens only.</div>\n      </div>\n      <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\n    </form>`,\n})\nexport class SignupComponent {\n  form = new FormGroup({ name: new FormControl('', [Validators.required, Validators.pattern(/^[a-z0-9-]+$/)]) });\n  onSubmit() { console.log(this.form.value); }\n}"
+    },
+    {
+      "id": "angular-taiga-max",
+      "framework": "angular",
+      "label": "Taiga UI",
+      "markers": {
+        "ui": ["@taiga-ui/core"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`<tui-input>`, `<button tuiButton>` + ReactiveForms.",
+      "snippetLang": "typescript",
+      "canonicalSnippet": "// signup.component.ts\nimport { Component } from '@angular/core';\nimport { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';\nimport { TuiInputModule, TuiTextfieldControllerModule } from '@taiga-ui/legacy';\nimport { TuiButton } from '@taiga-ui/core';\n\n@Component({\n  selector: 'app-signup',\n  standalone: true,\n  imports: [ReactiveFormsModule, TuiInputModule, TuiTextfieldControllerModule, TuiButton],\n  template: `\n    <form [formGroup]=\"form\" (ngSubmit)=\"form.valid && onSubmit()\" class=\"flex flex-col gap-4\">\n      <tui-input formControlName=\"name\">Name\n        <input tuiTextfieldLegacy required />\n      </tui-input>\n      <button tuiButton type=\"submit\" appearance=\"primary\">Submit</button>\n    </form>`,\n})\nexport class SignupComponent {\n  form = new FormGroup({ name: new FormControl('', [Validators.required, Validators.pattern(/^[a-z0-9-]+$/)]) });\n  onSubmit() { console.log(this.form.value); }\n}"
+    },
+    {
+      "id": "angular-vanilla-tailwind",
+      "framework": "angular",
+      "label": "Tailwind only",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": [],
+        "exclude": ["@angular/material", "primeng", "@ng-bootstrap/ng-bootstrap", "@taiga-ui/core"]
+      },
+      "adaptation": "Native `<input>` + Tailwind utility classes + ReactiveForms.",
+      "snippetLang": "typescript",
+      "canonicalSnippet": "// signup.component.ts\nimport { Component } from '@angular/core';\nimport { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';\n\n@Component({\n  selector: 'app-signup',\n  standalone: true,\n  imports: [ReactiveFormsModule],\n  template: `\n    <form [formGroup]=\"form\" (ngSubmit)=\"form.valid && onSubmit()\" class=\"flex flex-col gap-4\">\n      <label class=\"flex flex-col gap-1 text-sm font-medium\">Name\n        <input formControlName=\"name\" required class=\"rounded border px-3 py-2\"\n          [class.border-red-500]=\"form.controls.name.invalid && form.controls.name.dirty\" />\n        <span *ngIf=\"form.controls.name.errors?.['pattern']\" class=\"text-xs text-red-600\">Lowercase, digits, hyphens only.</span>\n      </label>\n      <button type=\"submit\" class=\"rounded bg-blue-600 px-4 py-2 text-white\">Submit</button>\n    </form>`,\n})\nexport class SignupComponent {\n  form = new FormGroup({ name: new FormControl('', [Validators.required, Validators.pattern(/^[a-z0-9-]+$/)]) });\n  onSubmit() { console.log(this.form.value); }\n}"
+    },
+    {
+      "id": "angular-vanilla",
+      "framework": "angular",
+      "label": "Native template + CSS",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": ["@angular/material", "primeng", "@ng-bootstrap/ng-bootstrap", "@taiga-ui/core", "tailwindcss"]
+      },
+      "adaptation": "Native `<input>` + component CSS + ReactiveForms.",
+      "snippetLang": "typescript",
+      "canonicalSnippet": "// signup.component.ts\nimport { Component } from '@angular/core';\nimport { FormGroup, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';\n\n@Component({\n  selector: 'app-signup',\n  standalone: true,\n  imports: [ReactiveFormsModule],\n  styles: [`.form{display:flex;flex-direction:column;gap:1rem}.form__label{display:flex;flex-direction:column;gap:.25rem;font-size:.875rem}.form__input{border:1px solid #d1d5db;border-radius:4px;padding:.5rem .75rem}.form__input.ng-invalid.ng-dirty{border-color:#ef4444}.form__error{color:#ef4444;font-size:.75rem}`],\n  template: `\n    <form [formGroup]=\"form\" (ngSubmit)=\"form.valid && onSubmit()\" class=\"form\">\n      <label class=\"form__label\">Name\n        <input formControlName=\"name\" required class=\"form__input\" />\n        <span *ngIf=\"form.controls.name.errors?.['pattern'] && form.controls.name.dirty\" class=\"form__error\">Lowercase, digits, hyphens only.</span>\n      </label>\n      <button type=\"submit\" class=\"form__submit\">Submit</button>\n    </form>`,\n})\nexport class SignupComponent {\n  form = new FormGroup({ name: new FormControl('', [Validators.required, Validators.pattern(/^[a-z0-9-]+$/)]) });\n  onSubmit() { console.log(this.form.value); }\n}"
+    },
+    {
+      "id": "solid-kobalte-tailwind",
+      "framework": "solid",
+      "label": "Kobalte + Tailwind",
+      "markers": {
+        "ui": ["@kobalte/core"],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`import { TextField } from '@kobalte/core/text-field'` + Tailwind classes.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { TextField } from '@kobalte/core/text-field';\nimport { createSignal } from 'solid-js';\n\nconst [name, setName] = createSignal('');\nconst error = () => name() && !/^[a-z0-9-]+$/.test(name()) ? 'Lowercase, digits, hyphens only.' : '';\n\n<form onSubmit={e => e.preventDefault()} class=\"flex flex-col gap-4\">\n  <TextField value={name()} onChange={setName} validationState={error() ? 'invalid' : 'valid'}>\n    <TextField.Label class=\"text-sm font-medium\">Name</TextField.Label>\n    <TextField.Input required class=\"rounded border px-3 py-2 ui-invalid:border-red-500\" />\n    <TextField.ErrorMessage class=\"text-xs text-red-600\">{error()}</TextField.ErrorMessage>\n  </TextField>\n  <button type=\"submit\" class=\"rounded bg-blue-600 px-4 py-2 text-white\">Submit</button>\n</form>"
+    },
+    {
+      "id": "solid-corvu-tailwind",
+      "framework": "solid",
+      "label": "Corvu + Tailwind",
+      "markers": {
+        "ui": ["@corvu/text-field"],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`import TextField from '@corvu/text-field'` (per-primitive package). Corvu primitives expose `data-invalid` / `data-valid` on the root — drive styling with Tailwind's `data-[invalid]:` variant.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import TextField from '@corvu/text-field';\nimport { createSignal } from 'solid-js';\n\nconst [name, setName] = createSignal('');\nconst invalid = () => name() !== '' && !/^[a-z0-9-]+$/.test(name());\n\n<form onSubmit={e => e.preventDefault()} class=\"flex flex-col gap-4\">\n  <TextField value={name()} onChange={setName} validationState={invalid() ? 'invalid' : 'valid'}>\n    <TextField.Label class=\"text-sm font-medium\">Name</TextField.Label>\n    <TextField.Input required\n      class=\"rounded border px-3 py-2 data-[invalid]:border-red-500\" />\n    <TextField.Description class=\"text-xs text-gray-500\">Lowercase letters, digits, hyphens.</TextField.Description>\n    <TextField.ErrorMessage class=\"text-xs text-red-600\">Lowercase, digits, hyphens only.</TextField.ErrorMessage>\n  </TextField>\n  <button type=\"submit\" class=\"rounded bg-blue-600 px-4 py-2 text-white\">Submit</button>\n</form>"
+    },
+    {
+      "id": "solid-hope-max",
+      "framework": "solid",
+      "label": "Hope UI",
+      "markers": {
+        "ui": ["@hope-ui/solid"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "`import { Input, Button } from '@hope-ui/solid'`.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { Input, Button, FormControl, FormLabel, FormErrorMessage } from '@hope-ui/solid';\nimport { createSignal } from 'solid-js';\n\nconst [name, setName] = createSignal('');\nconst error = () => name() && !/^[a-z0-9-]+$/.test(name()) ? 'Lowercase, digits, hyphens only.' : '';\n\n<form onSubmit={e => e.preventDefault()}>\n  <FormControl required invalid={!!error()}>\n    <FormLabel>Name</FormLabel>\n    <Input value={name()} onInput={e => setName(e.currentTarget.value)} />\n    <FormErrorMessage>{error()}</FormErrorMessage>\n  </FormControl>\n  <Button type=\"submit\" mt=\"$4\" colorScheme=\"primary\">Submit</Button>\n</form>"
+    },
+    {
+      "id": "solid-vanilla-tailwind",
+      "framework": "solid",
+      "label": "Tailwind only",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": [],
+        "exclude": ["@kobalte/core", "@hope-ui/solid", "@corvu/text-field"]
+      },
+      "adaptation": "Native JSX `<input>` + Tailwind utility classes.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { createSignal } from 'solid-js';\n\nconst [name, setName] = createSignal('');\nconst error = () => name() && !/^[a-z0-9-]+$/.test(name()) ? 'Lowercase, digits, hyphens only.' : '';\n\n<form onSubmit={e => e.preventDefault()} class=\"flex flex-col gap-4\">\n  <label class=\"flex flex-col gap-1 text-sm font-medium\">Name\n    <input value={name()} onInput={e => setName(e.currentTarget.value)} required\n      class={`rounded border px-3 py-2 ${error() ? 'border-red-500' : 'border-gray-300'}`} />\n    {error() && <span class=\"text-xs text-red-600\">{error()}</span>}\n  </label>\n  <button type=\"submit\" class=\"rounded bg-blue-600 px-4 py-2 text-white\">Submit</button>\n</form>"
+    },
+    {
+      "id": "solid-vanilla",
+      "framework": "solid",
+      "label": "Native JSX + CSS",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": ["@kobalte/core", "@hope-ui/solid", "@corvu/text-field", "tailwindcss"]
+      },
+      "adaptation": "Native JSX `<input>` + CSS modules.",
+      "snippetLang": "tsx",
+      "canonicalSnippet": "import { createSignal } from 'solid-js';\n\nconst [name, setName] = createSignal('');\nconst error = () => name() && !/^[a-z0-9-]+$/.test(name()) ? 'Lowercase, digits, hyphens only.' : '';\n\n<form onSubmit={e => e.preventDefault()} class=\"form\">\n  <label class=\"form__label\">Name\n    <input value={name()} onInput={e => setName(e.currentTarget.value)} required\n      classList={{ 'form__input': true, 'form__input--error': !!error() }} />\n    {error() && <span class=\"form__error\">{error()}</span>}\n  </label>\n  <button type=\"submit\" class=\"form__submit\">Submit</button>\n</form>"
+    },
+    {
+      "id": "jquery-ui-bootstrap",
+      "framework": "jquery",
+      "label": "jQuery UI + Bootstrap",
+      "markers": {
+        "ui": ["jquery-ui", "bootstrap"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "Bootstrap markup (`<input class=\"form-control\">`) + jQuery UI initializers (`.datepicker()`, `.autocomplete()`). Wire validation with `jquery-validation`.",
+      "snippetLang": "html",
+      "canonicalSnippet": "<form id=\"signup-form\" class=\"needs-validation\" novalidate>\n  <div class=\"mb-3\">\n    <label class=\"form-label\" for=\"name\">Name</label>\n    <input id=\"name\" name=\"name\" class=\"form-control\" required pattern=\"[a-z0-9-]+\">\n    <div class=\"invalid-feedback\">Lowercase, digits, hyphens only.</div>\n  </div>\n  <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\n</form>\n<script>\n  $('#signup-form').validate({\n    errorClass: 'invalid-feedback d-block',\n    rules: { name: { required: true, pattern: /^[a-z0-9-]+$/ } }\n  });\n</script>"
+    },
+    {
+      "id": "jquery-bootstrap-max",
+      "framework": "jquery",
+      "label": "Bootstrap + jQuery (sem jQuery UI)",
+      "markers": {
+        "ui": ["bootstrap"],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": ["jquery-ui"]
+      },
+      "adaptation": "Bootstrap markup + plain jQuery event handlers (`$('#x').on('click', ...)`); no jQuery UI widgets.",
+      "snippetLang": "html",
+      "canonicalSnippet": "<form id=\"signup-form\" class=\"needs-validation\" novalidate>\n  <div class=\"mb-3\">\n    <label class=\"form-label\" for=\"name\">Name</label>\n    <input id=\"name\" name=\"name\" class=\"form-control\" required>\n    <div class=\"invalid-feedback\">Lowercase, digits, hyphens only.</div>\n  </div>\n  <button type=\"submit\" class=\"btn btn-primary\">Submit</button>\n</form>\n<script>\n  $('#signup-form').on('submit', function (e) {\n    var val = $('#name').val();\n    if (!val || !/^[a-z0-9-]+$/.test(val)) {\n      e.preventDefault();\n      $('#name').addClass('is-invalid');\n    }\n  });\n  $('#name').on('input', function () { $(this).removeClass('is-invalid'); });\n</script>"
+    },
+    {
+      "id": "jquery-vanilla",
+      "framework": "jquery",
+      "label": "jQuery puro + CSS",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": ["jquery-ui", "bootstrap"]
+      },
+      "adaptation": "Plain HTML + jQuery selectors + `.on()` event handlers; CSS classes hand-rolled.",
+      "snippetLang": "html",
+      "canonicalSnippet": "<form id=\"signup-form\">\n  <label for=\"name\">Name</label>\n  <input id=\"name\" name=\"name\" required>\n  <span id=\"name-error\" class=\"field-error\" hidden>Lowercase, digits, hyphens only.</span>\n  <button type=\"submit\">Submit</button>\n</form>\n<script>\n  $('#signup-form').on('submit', function (e) {\n    var val = $('#name').val();\n    var valid = !!val && /^[a-z0-9-]+$/.test(val);\n    $('#name-error').prop('hidden', valid);\n    if (!valid) e.preventDefault();\n  });\n</script>"
+    },
+    {
+      "id": "vanilla-html-tailwind",
+      "framework": "vanilla",
+      "label": "HTML + Tailwind",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": ["tailwindcss"],
+        "animation": [],
+        "icons": [],
+        "exclude": []
+      },
+      "adaptation": "Native HTML + Tailwind utility classes + plain `<script>` (`document.querySelector`, `addEventListener`).",
+      "snippetLang": "html",
+      "canonicalSnippet": "<form id=\"signup-form\" class=\"flex flex-col gap-4\">\n  <label class=\"flex flex-col gap-1 text-sm font-medium\">Name\n    <input id=\"name\" name=\"name\" required pattern=\"[a-z0-9-]+\"\n      class=\"rounded border border-gray-300 px-3 py-2 invalid:border-red-500\" />\n    <span id=\"name-error\" class=\"hidden text-xs text-red-600\">Lowercase, digits, hyphens only.</span>\n  </label>\n  <button type=\"submit\" class=\"rounded bg-blue-600 px-4 py-2 text-white\">Submit</button>\n</form>\n<script>\n  document.getElementById('signup-form').addEventListener('submit', function (e) {\n    var input = document.getElementById('name');\n    var error = document.getElementById('name-error');\n    var valid = input.validity.valid;\n    error.classList.toggle('hidden', valid);\n    if (!valid) e.preventDefault();\n  });\n</script>"
+    },
+    {
+      "id": "vanilla-html",
+      "framework": "vanilla",
+      "label": "HTML + plain CSS",
+      "markers": {
+        "ui": [],
+        "form": [],
+        "styling": [],
+        "animation": [],
+        "icons": [],
+        "exclude": ["tailwindcss"]
+      },
+      "adaptation": "Native HTML + BEM classes + plain `<script>`.",
+      "snippetLang": "html",
+      "canonicalSnippet": "<form id=\"signup-form\" class=\"form\">\n  <label class=\"form__label\" for=\"name\">Name</label>\n  <input id=\"name\" name=\"name\" required pattern=\"[a-z0-9-]+\" class=\"form__input\" />\n  <span id=\"name-error\" class=\"form__error\" hidden>Lowercase, digits, hyphens only.</span>\n  <button type=\"submit\" class=\"form__submit\">Submit</button>\n</form>\n<script>\n  document.getElementById('signup-form').addEventListener('submit', function (e) {\n    var input = document.getElementById('name');\n    var error = document.getElementById('name-error');\n    var valid = input.validity.valid;\n    error.hidden = valid;\n    if (!valid) e.preventDefault();\n  });\n</script>"
+    }
+  ]
+}
