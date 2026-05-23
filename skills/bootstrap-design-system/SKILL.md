@@ -256,9 +256,43 @@ For each item, Chrome MCP performs:
 
 ### Step D — Port JS per item
 
-This is the most labor-intensive step. Process **one item at a time** with a human gate at the end of each.
+This is the most labor-intensive step. Process the inventory in **tier order — atoms → molecules → organisms** — with tier-batched approval gates rather than one gate per item. Rationale: atoms are largely mechanical translations and don't merit a stop-the-world prompt each; organisms warrant per-item scrutiny; molecules are the middle case (batched summary).
 
-For each component (in inventory order):
+Gate policy per tier:
+
+| Tier      | Gate                                                                                                                          |
+|-----------|-------------------------------------------------------------------------------------------------------------------------------|
+| atom      | **Auto-port.** No per-item prompt. The agent flags trouble explicitly (see "Implicit gate" below); only flagged atoms surface to the user. |
+| molecule  | **Batch summary review.** After all molecules in the inventory are ported, present a single summary table; user picks `aprovar tudo` or `revisar lista: <slugs>` to drill into a subset. |
+| organism  | **Per-component gate.** Same as before — present delta to user, mapped mechanically per Step D.5 (`aceitar` / `refinar` / `adiar`). |
+
+**Implicit gate (atoms only):** the agent escalates an atom from auto-port to per-item review when any of the following hold:
+
+  - QA pass rate < 100% on the matrix (any row fails).
+  - Source file imports a library not covered by the chosen strategy.
+  - The source uses any of: `useReducer`, `useContext`, `useImperativeHandle`, `forwardRef`, portals, `useEffect` cleanups with subscriptions.
+  - Source file exceeds 150 lines.
+
+Otherwise the atom is silently committed with the QA-derived status (Step D.5).
+
+**Batch summary prompt (molecules):** after the last molecule, print to the user:
+
+```
+Resumo da batelada — molecules (8 items):
+
+  Slug              JS status   Matrix    Notes
+  ----------------  ----------  --------  ------------------------------------
+  text-input        ported      3/3       —
+  search-bar        ported      2/2       —
+  dropdown          partial     2/3       hover fires no DS mas não na rota live
+  ...
+
+aprovar tudo / revisar lista: <slugs separados por espaço>
+```
+
+If the user picks `revisar lista`, drop into the per-component organism flow for each named slug.
+
+For each component (in inventory tier order):
 
 1. **Read the source file.** Identify:
    - `useState`/`useReducer` → variables in the IIFE closure.
@@ -291,7 +325,7 @@ For each component (in inventory order):
    - "refine" — agent iterates (more `Read` on source, more `Write` on DS file, re-run QA).
    - "postpone" — front-matter stays `js: stub`; the component is shipped as a visual reference only.
 6. **Update inventory `Notes` column** with the current state.
-7. **Commit each item separately:** `git commit -m "feat(ds): bootstrap port <slug>"`. Granular commits make it easy to revert individual ports.
+7. **Commit each item separately:** `git commit -m "feat(ds): bootstrap port <slug>"`. Granular commits make it easy to revert individual ports. For atoms in auto-port (see tier gate policy above), batch the commits — one commit per tier rather than one per slug — using the message `feat(ds): bootstrap port <tier> tier (N items)`. Per-item commits are still required for molecules surfaced via `revisar lista` and for all organisms.
 
 ### Step E — Validate
 
