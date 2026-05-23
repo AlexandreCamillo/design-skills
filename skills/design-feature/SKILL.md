@@ -803,7 +803,7 @@ When the user approves:
 
    **`[manual fallback]`** Tell the user the DS file is on disk and the index is stale; offer to re-run this step later if they install the CLI.
 
-5. **`[se CLI]`** Run `markup-cli check --build` — must exit 0.
+5. **`[se CLI]`** Run `markup-cli check --build --strict` — must exit 0.
 
    **`[manual fallback]`** Print the structural invariants (marker present, IIFE in script, single root element, no `Tweaker.register` left) and ask the user to confirm.
 
@@ -818,7 +818,7 @@ When the user approves:
 ```
 <HARD-GATE>
 Do NOT invoke brainstorming for tech spec until:
-  - markup-cli check --build exited 0 (or manual structural review confirmed by user
+  - markup-cli check --build --strict exited 0 (or manual structural review confirmed by user
     if CLI absent), AND
   - The Phase 2.3 reformat checklist passed (§1 has ≥1 grid cell, §4 snippet is
     non-empty, §7 has dl.tokens, §8 has ≥1 bullet), AND
@@ -867,7 +867,7 @@ Do NOT invoke writing-plans until ALL of the following are true:
 
 1. **Invoke `writing-plans`** with extra instruction:
 
-   > DS adjustments are first-class plan tasks. If the implementation requires changes to a DS component, include explicit tasks to edit the DS file (following `templates/ds-component-pattern.md`, with the Code API section adapted to the strategy in `.markup-design/scratch/strategy.json`), run `markup-cli check --build` (or the manual structural review when CLI is absent), and commit with `feat(ds): amend <slug> (driven by <reason>)`. Any task that edits a DS file MUST be followed by `markup-cli check --build` in the plan. Do NOT include tasks that update QA sidecars or full-prototype files — those are no longer part of the workflow.
+   > DS adjustments are first-class plan tasks. If the implementation requires changes to a DS component, include explicit tasks to edit the DS file (following `templates/ds-component-pattern.md`, with the Code API section adapted to the strategy in `.markup-design/scratch/strategy.json`), run `markup-cli check --build --strict` (or the manual structural review when CLI is absent), and commit with `feat(ds): amend <slug> (driven by <reason>)`. Any task that edits a DS file MUST be followed by `markup-cli check --build --strict` in the plan. Do NOT include tasks that update QA sidecars or full-prototype files — those are no longer part of the workflow.
 
 2. **Post-plan checklist (run on the file `writing-plans` just wrote, before invoking execution).** Two heuristic grep-based checks. Both run; surface any flag to the user and wait for explicit confirm-or-revise before advancing to step 3.
 
@@ -904,7 +904,7 @@ Do NOT declare implementation done until:
   - Its evidence (test command output, type-check output, etc.) has been printed in
     this transcript, AND
   - If any DS file under docs/design/design-system/ was modified during Phase 4,
-    `markup-cli check --build` exited 0 (or the manual structural review was
+    `markup-cli check --build --strict` exited 0 (or the manual structural review was
     confirmed by the user when CLI is absent).
 </HARD-GATE>
 ```
@@ -917,7 +917,7 @@ Phase 4 implementation may touch DS files, but only under a narrow rule. Apply t
 
 **Examples — additive, stay in Phase 4:**
 
-1. The tech spec needs a new `size=xs` variant on the Button component that did not exist when the mockup was approved. The Phase 1 mockup did not show or exercise this size. **OK** — add the variant in Phase 4 as a DS-edit task (per Phase 4 step 1 instruction); run `markup-cli check --build`; commit.
+1. The tech spec needs a new `size=xs` variant on the Button component that did not exist when the mockup was approved. The Phase 1 mockup did not show or exercise this size. **OK** — add the variant in Phase 4 as a DS-edit task (per Phase 4 step 1 instruction); run `markup-cli check --build --strict`; commit.
 2. The tech spec needs a new `loading` state on the Form component (spinner over a disabled form) that the Phase 1 mockup did not exercise. **OK** — add the state row to the State decision matrix and add the visual to the all-states grid in Phase 4; the user's Phase 1 approval covered the rest of the form's visuals, which are unchanged.
 
 **Examples — non-additive, roll back to Phase 1:**
@@ -1000,7 +1000,7 @@ Driven by the **State decision matrix table inside the DS file** (no sidecar).
      - Se a causa é uma propriedade que o DS cobre e o código não respeita →
        fix code (default).
      - Se a causa é uma propriedade que o código aplica e o DS não documenta →
-       fix DS (raro; segue o template bundled, roda markup-cli check --build).
+       fix DS (raro; segue o template bundled, roda markup-cli check --build --strict).
    ```
 
    Append the `{ scenario, cause, decision }` triplet to `state.json:qaRun.deltas` then perform the edit. Do **not** edit without the `cause` line written first — this is the F2 gate.
@@ -1067,7 +1067,7 @@ Diga "QA passes" quando estiver satisfeito; "QA fails" + descreva o drift.
 - Never modify `src/` during Phase 1-2.
 - Never modify DS files during Phase 3.
 - During Phase 2.3, the component root's `data-*`, inline `style`, and `class` attributes set during 2.2 baking MUST be preserved on the new root element. Reformat moves markup around the root, never strips it.
-- Always run `markup-cli check --build` before declaring Phase 2 done (or the manual structural review when CLI is absent). Phase 4 completion is gated by `verification-before-completion` AND, if any DS file was edited during Phase 4, by `markup-cli check --build` as well — DS edits never ship un-validated.
+- Always run `markup-cli check --build --strict` before declaring Phase 2 done (or the manual structural review when CLI is absent). Phase 4 completion is gated by `verification-before-completion` AND, if any DS file was edited during Phase 4, by `markup-cli check --build --strict` as well — DS edits never ship un-validated.
 - Never create Markup folders/projects without user approval.
 - The bundled tweaker template at `templates/tweaker.html` is the single source of truth — never regenerate it per feature; only Read+inline.
 - The bundled DS pattern template at `templates/ds-component-pattern.md` is the single source of truth for DS file structure — Read it before writing or editing any DS file.

@@ -252,7 +252,7 @@ For each item, Chrome MCP performs:
    - Tokens copied verbatim from `src/styles/tokens.css` if present, else derived from `tailwind.config.*`, else inline defaults (same rule as the bundled template).
    - `data-ds-component="<slug>"` marker on `.page` wrapper (unchanged).
    - IIFE script: `window.DS.<slug> = { init(root, opts) { /* TODO: port from src/components/<file> */ } }` with `js: stub` front-matter (Step D ports this).
-6. After all snapshots, run `markup-cli check --build` and ensure the structure passes (BEM prefix linter, marker uniqueness, etc.). Fix anything broken before advancing.
+6. After all snapshots, run `markup-cli check --build --strict` and ensure the structure passes (BEM prefix linter, marker uniqueness, etc.). Fix anything broken before advancing.
 
 ### Step D — Port JS per item
 
@@ -346,7 +346,7 @@ For each component (in inventory tier order):
 
 ### Step E — Validate
 
-1. **`markup-cli check --build`** — must pass.
+1. **`markup-cli check --build --strict`** — must pass.
 2. **`markup-cli sync-index`** — regenerate `index.md`.
 3. **Append a `## Bootstrap status` section to `docs/design/index.md`:**
 
