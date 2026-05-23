@@ -834,6 +834,10 @@ Do NOT invoke writing-plans until BOTH of the following are true:
 ```
 <HARD-GATE>
 Do NOT declare implementation done until:
+  - The post-plan checklist (Phase 4 step 2) ran, AND any flag it raised was
+    resolved by either an explicit user confirmation or a plan revision (i.e.
+    `state.json:phase4.postPlanChecklist.dsTasks` and `.testPrecedence` are both
+    set, and neither is in an unresolved state), AND
   - The verification-before-completion skill has been invoked, AND
   - Its evidence (test command output, type-check output, etc.) has been printed in
     this transcript, AND
