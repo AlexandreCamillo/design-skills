@@ -8,6 +8,8 @@ compat:
 
 # Design-Feature Workflow
 
+> **Convenção de idioma:** strings printadas/prompted ao usuário → PT-BR. Instruções ao agente → English.
+
 This skill orchestrates the end-to-end lifecycle of a user-visible feature, keeping the Design System and the code implementation rigorously in sync. It composes other skills (`brainstorming`, `frontend-design`, `writing-plans`) rather than replacing them.
 
 ## Cross-harness tool reference
