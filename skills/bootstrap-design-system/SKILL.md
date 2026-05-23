@@ -397,6 +397,7 @@ State for bootstrap is `.markup-design/bootstrap/state.json`:
 
 ```json
 {
+  "schemaVersion": 1,
   "step": "step-D-port-js",
   "currentSlug": "sidebar",
   "completed": ["button", "icon-button", "breadcrumb"],
@@ -406,6 +407,7 @@ State for bootstrap is `.markup-design/bootstrap/state.json`:
 }
 ```
 
+- `schemaVersion` — integer. Currently `1`. Missing ⇒ treated as `0` and migrated inline (no field defaults needed for this schema yet). See `docs/SCHEMA-CHANGELOG.md`.
 - `framework` — copied from `.markup-design/scratch/strategy.json:framework` after Step 0.
 - `strategy` — copied from `.markup-design/scratch/strategy.json:chosen` after Step 0.
 
