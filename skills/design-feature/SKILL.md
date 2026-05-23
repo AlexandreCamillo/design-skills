@@ -480,6 +480,16 @@ The mockup HTML must:
 2. Wrap the actual component subtree in `<div data-ds-component="<slug>">` (the tweaker uses this attribute to find the apply root).
 3. Inline the bundled tweaker template verbatim — content of `templates/tweaker.html` (relative to this SKILL.md) inserted just before `</body>`.
 4. Register options via `window.Tweaker.register({ title, slug, groups, apply })` where every meaningful design decision (variant, density, accent, copy variant, etc.) is exposed as an option. `apply(state, root)` maps option values to attribute/CSS-var/class assignments on the component root.
+5. **Project tokens injected once per feature.** Before generating the mockup, the agent reads the project's design tokens from the **first** source that exists at cwd, in priority order:
+   - `src/styles/tokens.css` (or `src/styles/tokens.scss`, `src/tokens.css`, `app/styles/tokens.css` — same file, different paths)
+   - `tailwind.config.js` / `tailwind.config.ts` / `tailwind.config.mjs` → `theme.extend.colors`, `theme.extend.spacing`, `theme.extend.fontFamily`
+   - `:root { … }` block inside any `src/**/*.css` file (fallback heuristic)
+
+   Detected tokens get inlined into the mockup's `<style>` block as a `:root { --token-name: <literal-value>; … }` declaration, so the approved mockup reflects the project's brand colors/spacing/typography instead of generic placeholders. The tweaker's `apply(state, root)` may then reference those CSS vars (e.g., `root.style.setProperty('--accent', state.accent)` works against the project's accent scale).
+
+   If no token source is detected, the agent prints to the user (PT-BR): *"Não achei `tokens.css` nem `tailwind.config.*` no projeto. O mockup vai usar valores literais — você pode aprovar assim ou parar e me apontar onde estão as design tokens."*. Default behavior on no response: continue with literal values.
+
+   This read happens **once per feature**, not per mockup version. Cached under `state.json:projectTokens` after the first read.
 
 The agent reads `templates/tweaker.html` (via the harness's file-read tool — see Cross-harness tool reference at the top) and pastes it into the generated mockup. The tweaker template is one source of truth — do not regenerate it per feature.
 
