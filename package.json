@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build:template": "node scripts/build-template.mjs",
-    "test": "node validate.mjs",
+    "test": "node validate.mjs && node scripts/smoke-test.mjs",
     "validate": "node validate.mjs"
   },
   "engines": {
