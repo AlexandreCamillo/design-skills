@@ -1185,6 +1185,8 @@ Schema:
 
 ## Resuming an in-flight feature
 
+**Cross-worktree resume (G1).** Before listing local `state.json` files, read `~/.markup-design/registry.json` per the §"Worktree registry" read trigger. If the current repo has registered worktrees other than the current cwd, print the "Features em outros worktrees deste repo" block first, then continue with the local-cwd resume offer below. Users in the wrong worktree see the pointer immediately and can `cd` over before answering the resume prompt.
+
 On invocation, list any `.markup-design/scratch/*/state.json` and offer to resume. On resume:
 
 1. Read the file. Determine the current phase from `phase`.
