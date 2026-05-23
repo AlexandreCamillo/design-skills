@@ -288,7 +288,7 @@ Update sub-plan status here as work progresses. Each Sub-plan gets its own bite-
 | 1 | Tweaker contract + Phase 2 invariants | planned | — | — |
 | 2 | Phase 5 QA hardening | planned | — | — |
 | 3 | Strategy single-source-of-truth | planned | — | — |
-| 4 | Phase 4 enforcement | planned | — | — |
+| 4 | Phase 4 enforcement | in-flight | — | docs/superpowers/plans/2026-05-23-sp-4-phase4-enforcement.md |
 | 5 | Phase 0/3 detection + ordering | planned | — | — |
 | 6 | Worktree-aware resume + schema versioning | planned | — | — |
 | 7 | bootstrap-design-system hardening | planned | — | — |
