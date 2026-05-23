@@ -991,6 +991,22 @@ Diga "QA passes" quando estiver satisfeito; "QA fails" + descreva o drift.
     "stateDir": ".superpowers/brainstorm/12345-1706000000/state",
     "pidFile": ".markup-design/scratch/<slug>/cloudflared.pid"
   },
+  "chromeMcp": {
+    "server": "claude-in-chrome",
+    "evaluateJs": "mcp__claude-in-chrome__javascript_tool",
+    "screenshot": "mcp__claude-in-chrome__upload_image",
+    "click": "mcp__claude-in-chrome__computer",
+    "hover": "mcp__claude-in-chrome__computer",
+    "focus": "mcp__claude-in-chrome__computer",
+    "type": "mcp__claude-in-chrome__form_input",
+    "navigate": "mcp__claude-in-chrome__navigate"
+  },
+  "qaRun": {
+    "folder": ".markup-design/qa/pricing-card/2026-05-23-141207",
+    "scenarios": ["default-live", "default-ds", "hover-live", "hover-ds"],
+    "discoveredStates": [],
+    "deltas": []
+  },
   "notes": "Phase 2 complete. Tech brainstorm next."
 }
 ```
@@ -1001,6 +1017,8 @@ Diga "QA passes" quando estiver satisfeito; "QA fails" + descreva o drift.
 - `companionServer`: `null` when Markup is online or before the first mockup write; populated when the local server is used.
 - `companionServer.tunnelUrl`: `null` if the user declined the Cloudflare tunnel or `cloudflared` is absent.
 - `companionServer.pidFile`: path to the file that holds the cloudflared background-process PID. `null` if the tunnel is not active. Used on resume to kill the prior tunnel before relaunching.
+- `chromeMcp`: object mapping capability names (`evaluateJs`, `screenshot`, `click`, `hover`, `focus`, `type`, `navigate`) to the resolved tool name on the active Chrome MCP server. Computed once at skill start (see § "Chrome MCP tool resolution"). `null` when no Chrome MCP server is registered — Phase 5 falls back to the manual checklist in that case.
+- `qaRun`: per-feature Phase 5 run record. `folder` is the relative path under `.markup-design/qa/<slug>/<YYYY-MM-DD-HHMMSS>/` where all `<scenario>-{live,ds}.png` screenshots for the latest run live. `scenarios` lists scenario IDs covered (one per matrix row plus any auto-sweep additions). `discoveredStates` lists states observed via the auto-sweep but absent from the matrix. `deltas` is an array of `{ scenario, cause, decision }` entries (one per delta found). `null` until Phase 5 runs.
 
 ## Resuming an in-flight feature
 
