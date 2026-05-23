@@ -405,6 +405,20 @@ If `bootstrappedFromEmpty === true`, append a pendant to the first line so the u
 Estratégia salva: antd visual + react-hook-form (escolhida 2026-05-21, framework escolhido manualmente em projeto vazio).
 ```
 
+**Thaw `(none)` when the framework lands in `package.json`.** Still inside §0.6, before printing the `sim / change / inspect` prompt: if `bootstrappedFromEmpty === true`, re-read the feature root's `package.json` (using `strategy.json:featureRoot` if set, otherwise cwd). If the chosen `framework` (e.g., `react`) is now a real `dependencies` or `devDependencies` entry, ask the user (PT-BR):
+
+> Project agora tem `<framework>@<version>` instalado — atualizar `detected.framework` de `@(none)` pra `@<version>`? (S/n)
+
+Default `S` (empty input or `s`/`sim`/`y`/`yes`):
+- Update `strategy.json:detected.framework` from `<framework>@(none)` to `<framework>@<version>`.
+- Re-run §0.1 step 2 (ecosystem detection) on the now-populated deps so `detected.uiLibs`, `detected.formLibs`, `detected.styling`, etc. get refreshed (the previous values were all `[]` from the empty-project run).
+- Leave `bootstrappedFromEmpty: true` as historical context — it's an audit field, not a live flag.
+- Print: `✓ detected.framework atualizado pra <framework>@<version>; ecossistema re-detectado (<N> libs encontradas).`
+
+`n` / `no`: skip the thaw, continue with the stale value, print: `Mantendo @(none); rode "change" pra forçar a re-detecção completa.`
+
+If `bootstrappedFromEmpty !== true`, or the chosen framework still isn't installed, skip this prompt entirely.
+
 - `sim` (or empty input or `y`) → skip Phase 0; proceed to feature setup.
 - `change` → re-run 0.1-0.5; overwrite `strategy.json`.
 - `inspect` → print the JSON contents and re-ask.
