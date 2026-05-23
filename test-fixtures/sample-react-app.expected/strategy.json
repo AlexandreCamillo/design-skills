@@ -1,0 +1,22 @@
+{
+  "framework": "react",
+  "chosen": "react-antd-rhf",
+  "label": "antd visual + react-hook-form",
+  "detected": {
+    "framework": "react@^18.3.1",
+    "uiLibs": ["antd@^5.18.0"],
+    "formLibs": ["react-hook-form@^7.51.0"],
+    "styling": [],
+    "animation": [],
+    "icons": []
+  },
+  "projectRules": {
+    "agentRules": {
+      "source": "AGENTS.md",
+      "summary": "UI conventions"
+    }
+  },
+  "freeText": null,
+  "bootstrappedFromEmpty": false,
+  "featureRoot": "."
+}
