@@ -2,7 +2,6 @@
 name: design-feature
 description: "Orchestrates the full feature-development workflow: design brainstorm + ideia mockup → promotion → tech brainstorm → plan + execute → visual+behavior QA. Keeps the Design System and code implementation in sync. Use when the user asks to design, brainstorm, or build a new feature that has a visible UI surface."
 compat:
-  cli: ">=0.1.0"
   markup: ">=0.2.0"
 ---
 

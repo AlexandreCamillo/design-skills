@@ -87,23 +87,18 @@ function validate(skillDir) {
   }
   // Built-in commander flags (--version, --help) are not commands; skip them.
 
-  // 5. Frontmatter has compat.cli + compat.markup as semver ranges.
+  // 5. Frontmatter has compat.markup as a semver range.
   // Block captures indented lines under `compat:`; last line may not have trailing \n
   // (since the frontmatter substring is sliced right before `\n---\n`).
   const compatBlock = frontmatter.match(/^compat:\s*\n((?:[ \t]+.+(?:\n|$))+)/m);
   if (!compatBlock) {
-    issues.push({ skill: name, message: 'frontmatter missing `compat:` block (expected compat.cli and compat.markup)' });
+    issues.push({ skill: name, message: 'frontmatter missing `compat:` block (expected compat.markup)' });
   } else {
     const block = compatBlock[1];
-    const cliRange = block.match(/^[ \t]+cli:\s*["']?([^"'\n]+?)["']?\s*$/m);
     const markupRange = block.match(/^[ \t]+markup:\s*["']?([^"'\n]+?)["']?\s*$/m);
-    if (!cliRange) issues.push({ skill: name, message: 'frontmatter missing `compat.cli` (expected a semver range like ">=0.1.0")' });
     if (!markupRange) issues.push({ skill: name, message: 'frontmatter missing `compat.markup` (expected a semver range like ">=0.2.0")' });
     // Cheap range-shape check: must start with one of: >=, >, <=, <, ^, ~, =, or a bare digit
     const rangeShape = /^(?:>=|<=|>|<|\^|~|=|\d)/;
-    if (cliRange && !rangeShape.test(cliRange[1].trim())) {
-      issues.push({ skill: name, message: `compat.cli "${cliRange[1]}" is not a recognizable semver range (expected like ">=0.1.0")` });
-    }
     if (markupRange && !rangeShape.test(markupRange[1].trim())) {
       issues.push({ skill: name, message: `compat.markup "${markupRange[1]}" is not a recognizable semver range (expected like ">=0.2.0")` });
     }
@@ -364,25 +359,10 @@ function parseFrontmatter(raw) {
 }
 
 function extractCompat(frontmatter) {
-  const cli = frontmatter.match(/^[ \t]+cli:\s*["']?([^"'\n]+?)["']?\s*$/m);
   const markup = frontmatter.match(/^[ \t]+markup:\s*["']?([^"'\n]+?)["']?\s*$/m);
   return {
-    cli: cli ? cli[1].trim() : null,
     markup: markup ? markup[1].trim() : null,
   };
-}
-
-function rangeLowerBound(range) {
-  // Extracts the lower bound from a `>=X.Y.Z` style range. Returns [maj, min, patch] or null.
-  const m = range && range.match(/(?:>=|>|=)?\s*(\d+)\.(\d+)\.(\d+)/);
-  return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
-}
-
-function cmpVersion(a, b) {
-  for (let i = 0; i < 3; i++) {
-    if (a[i] !== b[i]) return a[i] - b[i];
-  }
-  return 0;
 }
 
 function validateCompatAlignment() {
@@ -390,36 +370,16 @@ function validateCompatAlignment() {
   const bootstrapPath = join(SKILLS_DIR, 'bootstrap-design-system', 'SKILL.md');
   if (!existsSync(designPath) || !existsSync(bootstrapPath)) return;
   const designFm = parseFrontmatter(readFileSync(designPath, 'utf8'));
-  const bootstrapRaw = readFileSync(bootstrapPath, 'utf8');
-  const bootstrapFm = parseFrontmatter(bootstrapRaw);
+  const bootstrapFm = parseFrontmatter(readFileSync(bootstrapPath, 'utf8'));
   if (!designFm || !bootstrapFm) return;
   const designCompat = extractCompat(designFm);
   const bootstrapCompat = extractCompat(bootstrapFm);
-  // 1. Both skills must declare the same compat.cli and compat.markup.
-  if (designCompat.cli && bootstrapCompat.cli && designCompat.cli !== bootstrapCompat.cli) {
-    issues.push({
-      skill: 'cross-cutting',
-      message: `compat.cli mismatch: design-feature="${designCompat.cli}" vs bootstrap-design-system="${bootstrapCompat.cli}" — both SKILL.md files must declare the same range`,
-    });
-  }
+  // Both skills must declare the same compat.markup.
   if (designCompat.markup && bootstrapCompat.markup && designCompat.markup !== bootstrapCompat.markup) {
     issues.push({
       skill: 'cross-cutting',
       message: `compat.markup mismatch: design-feature="${designCompat.markup}" vs bootstrap-design-system="${bootstrapCompat.markup}" — both SKILL.md files must declare the same range`,
     });
-  }
-  // 2. bootstrap precondition 2 wording's version must be >= compat.cli lower bound.
-  // The wording lives near the top of the file as "Recommended (not strictly required) is `>=X.Y.Z`".
-  const precondMatch = bootstrapRaw.match(/Recommended[^`]*`(>=\s*\d+\.\d+\.\d+)`/);
-  if (precondMatch && bootstrapCompat.cli) {
-    const precondVer = rangeLowerBound(precondMatch[1]);
-    const compatVer = rangeLowerBound(bootstrapCompat.cli);
-    if (precondVer && compatVer && cmpVersion(precondVer, compatVer) < 0) {
-      issues.push({
-        skill: 'bootstrap-design-system',
-        message: `precondition 2 wording "${precondMatch[1]}" is below frontmatter compat.cli "${bootstrapCompat.cli}" — raise the precondition text to match the frontmatter (the frontmatter wins for hard checks)`,
-      });
-    }
   }
 }
 

@@ -2,7 +2,6 @@
 name: bootstrap-design-system
 description: "One-shot bootstrap that extracts a Design System from an existing app's running UI, so the design-feature workflow can be adopted on a project that already has code. Uses Chrome MCP to snapshot rendered components, then ports JSX/Vue/Svelte behavior to vanilla JS micro-apps. Manage expectations: this is a draft generator, not a finished DS — every item needs human curation."
 compat:
-  cli: ">=0.1.0"
   markup: ">=0.2.0"
 ---
 
