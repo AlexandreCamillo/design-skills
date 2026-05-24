@@ -521,7 +521,7 @@ State for each feature lives at `.markup-design/scratch/<feature-slug>/state.jso
                 │  ideia → DS file; tweaker scaffolding        │
                 │  removed; locked choices baked literal;      │
                 │  reformatted to bundled DS pattern           │
-                │  gate: markup-cli check passes            │
+                │  gate: ./scripts/lint-ds.sh passes        │
                 └─────────────────────┬───────────────────────┘
                                       │
                 ┌─────────────────────▼───────────────────────┐
@@ -1039,7 +1039,7 @@ Driven by the **State decision matrix table inside the DS file**.
      - Se a causa é uma propriedade que o DS cobre e o código não respeita →
        fix code (default).
      - Se a causa é uma propriedade que o código aplica e o DS não documenta →
-       fix DS (raro; segue o template bundled, roda markup-cli check --build --strict).
+       fix DS (raro; segue o template bundled, roda ./scripts/lint-ds.sh).
    ```
 
    Append the `{ scenario, cause, decision }` triplet to `state.json:qaRun.deltas` then perform the edit. Do **not** edit without the `cause` line written first — this is the F2 gate.
@@ -1106,7 +1106,7 @@ Diga "QA passes" quando estiver satisfeito; "QA fails" + descreva o drift.
 - Never modify `src/` during Phase 1-2.
 - Never modify DS files during Phase 3.
 - During Phase 2.3, the component root's `data-*`, inline `style`, and `class` attributes set during 2.2 baking MUST be preserved on the new root element. Reformat moves markup around the root, never strips it.
-- Always run `markup-cli check --build --strict` before declaring Phase 2 done (or the manual structural review when CLI is absent). Phase 4 completion is gated by `verification-before-completion` AND, if any DS file was edited during Phase 4, by `markup-cli check --build --strict` as well — DS edits never ship un-validated.
+- Always run `./scripts/lint-ds.sh <ds-file>` before declaring Phase 2 done. Phase 4 completion is gated by `verification-before-completion` AND, if any DS file was edited during Phase 4, by `./scripts/lint-ds.sh` as well — DS edits never ship un-validated.
 - Never create Markup folders/projects without user approval.
 - The bundled tweaker template at `templates/tweaker.html` is the single source of truth — never regenerate it per feature; only Read+inline.
 - The bundled DS pattern template at `templates/ds-component-pattern.md` is the single source of truth for DS file structure — Read it before writing or editing any DS file.
