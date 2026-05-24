@@ -28,13 +28,13 @@ When the bootstrap completes:
 ## Hard preconditions
 
 1. **superpowers plugin installed.** This skill invokes `brainstorming` to confirm the inventory and may call `frontend-design` for individual port refinements. Abort with the install link if missing.
-2. **`markup-cli` CLI installed.** Used for build, sync-index, check. Recommended (not strictly required) is `>=0.1.0` which has the `bootstrap` sub-commands.
+2. **In-skill scripts present.** The skill invokes `../design-feature/scripts/{doctor,promote,sync-index,lint-ds}.{sh,ps1}`. They ship with the `design-skills` plugin and require no installation. If the `scripts/` directory is missing (i.e., a partial install), abort with `❌ HARD: scripts ausentes em ../design-feature/scripts/. Reinstale design-skills`.
 3. **Chrome MCP server available on the current harness.** This skill SNAPSHOTS the running app — without Chrome MCP the user would have to hand-translate each component, which is more work than starting fresh. Detect the server by looking for: `mcp__claude-in-chrome__*` or `mcp__chrome-devtools__*` on **Claude Code**; tools registered by `chrome-devtools` on **Gemini CLI**; tools registered by `chrome_devtools` on **Codex CLI**. If no Chrome MCP server is registered: refuse with a clear message giving the install path for the active harness — **Claude Code (preferred):** the [Claude for Chrome extension](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) activated with `claude --chrome` or `/chrome` in-session (requires Claude Code 2.0.73+; Chrome/Edge only); fallback for WSL/Brave/Arc: `claude mcp add chrome-devtools npx chrome-devtools-mcp@latest`. **Gemini CLI:** `gemini mcp add chrome-devtools npx chrome-devtools-mcp@latest`. **Codex CLI:** `codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest` (Codex's Chrome extension is currently Codex-app-only, not exposed to the CLI). OR offer to fall back to a "code-only" path where the agent reads each React/Vue file and writes vanilla JS by hand. Default to refuse; only fall back if the user explicitly asks.
 4. **design-feature bundled template available** — `bootstrap-design-system` reads `skills/design-feature/templates/ds-component-pattern.md` during Step C and Step D. The CLI install bundles both skills together (same `design-skills` package), so this is implicit, but if the template file is missing the bootstrap MUST abort with: `❌ HARD: template do design-feature não encontrado em templates/ds-component-pattern.md. Reinstale design-skills`.
 
 ## Soft dependency
 
-- **Markup online** — optional. Bootstrap can complete entirely locally. If connected, you can run `markup-cli promote <slug>` manually after curation; the skill itself does not invoke it.
+- **Markup-server reachable** — optional (`MARKUP_URL` + `MARKUP_TOKEN` env vars set; `../design-feature/scripts/doctor.sh` exits 0). Bootstrap can complete entirely locally. If connected, you can run `../design-feature/scripts/promote.sh <file> <slug>` manually after curation; the skill itself does not invoke it.
 
 ## Manage expectations (print at start, BEFORE any other action)
 
@@ -250,7 +250,7 @@ For each item, Chrome MCP performs:
    - Tokens copied verbatim from `src/styles/tokens.css` if present, else derived from `tailwind.config.*`, else inline defaults (same rule as the bundled template).
    - `data-ds-component="<slug>"` marker on `.page` wrapper (unchanged).
    - IIFE script: `window.DS.<slug> = { init(root, opts) { /* TODO: port from src/components/<file> */ } }` with `js: stub` front-matter (Step D ports this).
-6. After all snapshots, run `markup-cli check --build --strict` and ensure the structure passes (BEM prefix linter, marker uniqueness, etc.). Fix anything broken before advancing.
+6. After all snapshots, run `../design-feature/scripts/lint-ds.sh <ds-file>` (Windows: `pwsh ../design-feature/scripts/lint-ds.ps1 <ds-file>`) on each generated DS file and ensure each exits 0. Fix any structural failure before advancing.
 
 ### Step D — Port JS per item
 
@@ -344,8 +344,8 @@ For each component (in inventory tier order):
 
 ### Step E — Validate
 
-1. **`markup-cli check --build --strict`** — must pass.
-2. **`markup-cli sync-index`** — regenerate `index.md`.
+1. **`../design-feature/scripts/lint-ds.sh <ds-file>`** for each DS file — must pass.
+2. **`../design-feature/scripts/sync-index.sh`** — regenerate the server index. Local `docs/design/index.md` is updated by step 3 below.
 3. **Append a `## Bootstrap status` section to `docs/design/index.md`:**
 
    ```markdown
@@ -373,8 +373,9 @@ For each component (in inventory tier order):
      · Portar JS dos itens partial/stub quando você tocar neles de novo.
      · Rodar `design-feature` pras features novas daqui pra frente. A Phase 0 vai
        reusar a estratégia que você escolheu no bootstrap (.markup-design/scratch/strategy.json).
-     · Re-rodar snapshots individuais depois de mudanças de design via:
-         markup-cli bootstrap snapshot <slug>
+     · Re-rodar snapshots individuais depois de mudanças de design: invoque a
+       `bootstrap-design-system` skill novamente — ela detecta DS files existentes e
+       oferece re-snapshot incremental por item.
    ```
 
 ## Known limitations (document in the bootstrap status section)
