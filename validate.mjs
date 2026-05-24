@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 // Validate that every SKILL.md in skills/ has the required frontmatter,
-// non-empty body, and references that point at real CLI commands.
-// Also validates the strategies.json single-source-of-truth and that the
-// generated ds-component-pattern.md is in sync with it.
+// non-empty body, and valid cross-references.
+// Also validates the strategies.json single-source-of-truth, that the
+// generated ds-component-pattern.md is in sync with it, and that every
+// script referenced in SKILL.md exists on disk with both .sh and .ps1 variants.
 
 import { readdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -11,16 +12,6 @@ import { spawnSync } from 'node:child_process';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const SKILLS_DIR = resolve(here, 'skills');
-
-const KNOWN_CLI_COMMANDS = new Set([
-  'init', 'doctor', 'build', 'sync-index', 'check', 'where',
-  'connect', 'mockup', 'mockup new', 'mockup version', 'mockup list', 'mockup archive',
-  'promote',
-  'comments', 'comments list', 'comments read', 'comments reply', 'comments react',
-  'comments resolve', 'comments region',
-  'sync-queue',
-  'bootstrap', 'bootstrap snapshot',
-]);
 
 const issues = [];
 
@@ -63,31 +54,7 @@ function validate(skillDir) {
     issues.push({ skill: name, message: 'body is too short (< 200 chars); skills need real content' });
   }
 
-  // 4. CLI command references resolve.
-  // Look for `markup-cli <command>` and verify the command is known.
-  // Skip flag forms (`--foo`) and tokens that are clearly placeholders
-  // (single letter, or appear next to a version literal).
-  const cmdPattern = /markup-cli\s+([a-z][a-z-]*(?:\s+[a-z][a-z-]*)?)/g;
-  let m;
-  const referenced = new Set();
-  while ((m = cmdPattern.exec(body)) !== null) {
-    const cmd = m[1];
-    // Skip placeholder-like tokens that are followed by a digit (version literals).
-    const followIdx = m.index + m[0].length;
-    if (body[followIdx] && /[0-9.]/.test(body[followIdx])) continue;
-    // Skip single-letter tokens (likely placeholder like "v" in "vX.Y.Z").
-    if (cmd.length <= 1) continue;
-    referenced.add(cmd);
-  }
-  for (const cmd of referenced) {
-    if (KNOWN_CLI_COMMANDS.has(cmd)) continue;
-    const parent = cmd.split(' ')[0];
-    if (KNOWN_CLI_COMMANDS.has(parent)) continue;
-    issues.push({ skill: name, message: `unknown CLI command reference: \`markup-cli ${cmd}\`` });
-  }
-  // Built-in commander flags (--version, --help) are not commands; skip them.
-
-  // 5. Frontmatter has compat.markup as a semver range.
+  // 4. Frontmatter has compat.markup as a semver range.
   // Block captures indented lines under `compat:`; last line may not have trailing \n
   // (since the frontmatter substring is sliced right before `\n---\n`).
   const compatBlock = frontmatter.match(/^compat:\s*\n((?:[ \t]+.+(?:\n|$))+)/m);
@@ -383,6 +350,56 @@ function validateCompatAlignment() {
   }
 }
 
+function validateScriptInvocations() {
+  // Patterns the skill prose uses to invoke scripts. We look for:
+  //   ./scripts/<name>.sh           — Unix bash invocation (used in design-feature/SKILL.md)
+  //   pwsh ./scripts/<name>.ps1     — Windows PowerShell invocation
+  //   ../design-feature/scripts/<name>.{sh,ps1} — cross-skill ref from bootstrap-design-system
+  // For every referenced script, both the .sh AND .ps1 variants must exist on disk.
+  const SCRIPTS_DIR = join(SKILLS_DIR, 'design-feature', 'scripts');
+  const targets = [
+    { skill: 'design-feature',          path: join(SKILLS_DIR, 'design-feature',          'SKILL.md'), prefix: './scripts/' },
+    { skill: 'bootstrap-design-system', path: join(SKILLS_DIR, 'bootstrap-design-system', 'SKILL.md'), prefix: '../design-feature/scripts/' },
+  ];
+  const escape = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const referenced = new Set();
+  for (const t of targets) {
+    if (!existsSync(t.path)) continue;
+    const body = readFileSync(t.path, 'utf8');
+    const re = new RegExp(escape(t.prefix) + '([a-z][a-z0-9-]*)\\.(sh|ps1)\\b', 'g');
+    let m;
+    while ((m = re.exec(body)) !== null) {
+      referenced.add(m[1]);
+    }
+  }
+  for (const name of referenced) {
+    const sh = join(SCRIPTS_DIR, name + '.sh');
+    const ps1 = join(SCRIPTS_DIR, name + '.ps1');
+    if (!existsSync(sh))  issues.push({ skill: 'design-feature/scripts', message: `referenced script "${name}.sh" not found at ${sh}` });
+    if (!existsSync(ps1)) issues.push({ skill: 'design-feature/scripts', message: `referenced script "${name}.ps1" not found at ${ps1}` });
+  }
+}
+
+function validateScriptParity() {
+  // Every .sh in the scripts dir must have a .ps1 sibling and vice versa.
+  const SCRIPTS_DIR = join(SKILLS_DIR, 'design-feature', 'scripts');
+  if (!existsSync(SCRIPTS_DIR)) return;
+  const entries = readdirSync(SCRIPTS_DIR);
+  const stems = new Map(); // stem -> { sh: bool, ps1: bool }
+  for (const f of entries) {
+    const m = f.match(/^(.+)\.(sh|ps1)$/);
+    if (!m) continue;
+    const stem = m[1];
+    const ext = m[2];
+    if (!stems.has(stem)) stems.set(stem, { sh: false, ps1: false });
+    stems.get(stem)[ext] = true;
+  }
+  for (const [stem, present] of stems) {
+    if (!present.sh)  issues.push({ skill: 'design-feature/scripts', message: `script "${stem}.sh" missing (parity with ${stem}.ps1)` });
+    if (!present.ps1) issues.push({ skill: 'design-feature/scripts', message: `script "${stem}.ps1" missing (parity with ${stem}.sh)` });
+  }
+}
+
 function validateFrameworkCoverage(strategies) {
   if (!strategies || !Array.isArray(strategies.strategies)) return;
   const designPath = join(SKILLS_DIR, 'design-feature', 'SKILL.md');
@@ -433,6 +450,8 @@ validateGeneratedTemplateInSync();
 validateCrossReferences();
 validateCompatAlignment();
 validateFrameworkCoverage(strategiesData);
+validateScriptInvocations();
+validateScriptParity();
 
 if (issues.length === 0) {
   console.log(`✓ Validated ${skills.length} skill(s); no issues.`);
