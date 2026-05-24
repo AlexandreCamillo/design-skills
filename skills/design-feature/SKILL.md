@@ -906,7 +906,7 @@ Do NOT invoke writing-plans until ALL of the following are true:
 
 1. **Invoke `writing-plans`** with extra instruction:
 
-   > DS adjustments are first-class plan tasks. If the implementation requires changes to a DS component, include explicit tasks to edit the DS file (following `templates/ds-component-pattern.md`, with the Code API section adapted to the strategy in `.markup-design/scratch/strategy.json`), run `markup-cli check --build --strict` (or the manual structural review when CLI is absent), and commit with `feat(ds): amend <slug> (driven by <reason>)`. Any task that edits a DS file MUST be followed by `markup-cli check --build --strict` in the plan.
+   > DS adjustments are first-class plan tasks. If the implementation requires changes to a DS component, include explicit tasks to edit the DS file (following `templates/ds-component-pattern.md`, with the Code API section adapted to the strategy in `.markup-design/scratch/strategy.json`), run `./scripts/lint-ds.sh <ds-file>` (or `pwsh ./scripts/lint-ds.ps1 <ds-file>` on Windows), and commit with `feat(ds): amend <slug> (driven by <reason>)`. Any task that edits a DS file MUST be followed by `./scripts/lint-ds.sh` in the plan.
 
 2. **Post-plan checklist (run on the file `writing-plans` just wrote, before invoking execution).** Two heuristic grep-based checks. Both run; surface any flag to the user and wait for explicit confirm-or-revise before advancing to step 3.
 
@@ -943,7 +943,7 @@ Do NOT declare implementation done until:
   - Its evidence (test command output, type-check output, etc.) has been printed in
     this transcript, AND
   - If any DS file under docs/design/design-system/ was modified during Phase 4,
-    `markup-cli check --build --strict` exited 0 (or the manual structural review was
+    `./scripts/lint-ds.sh <ds-file>` exited 0 (or the manual structural review was
     confirmed by the user when CLI is absent).
 </HARD-GATE>
 ```
@@ -956,7 +956,7 @@ Phase 4 implementation may touch DS files, but only under a narrow rule. Apply t
 
 **Examples — additive, stay in Phase 4:**
 
-1. The tech spec needs a new `size=xs` variant on the Button component that did not exist when the mockup was approved. The Phase 1 mockup did not show or exercise this size. **OK** — add the variant in Phase 4 as a DS-edit task (per Phase 4 step 1 instruction); run `markup-cli check --build --strict`; commit.
+1. The tech spec needs a new `size=xs` variant on the Button component that did not exist when the mockup was approved. The Phase 1 mockup did not show or exercise this size. **OK** — add the variant in Phase 4 as a DS-edit task (per Phase 4 step 1 instruction); run `./scripts/lint-ds.sh <ds-file>`; commit.
 2. The tech spec needs a new `loading` state on the Form component (spinner over a disabled form) that the Phase 1 mockup did not exercise. **OK** — add the state row to the State decision matrix and add the visual to the all-states grid in Phase 4; the user's Phase 1 approval covered the rest of the form's visuals, which are unchanged.
 
 **Examples — non-additive, roll back to Phase 1:**
