@@ -28,7 +28,14 @@ When the bootstrap completes:
 ## Hard preconditions
 
 1. **superpowers plugin installed.** This skill invokes `brainstorming` to confirm the inventory and may call `frontend-design` for individual port refinements. Abort with the install link if missing.
-2. **In-skill scripts present.** The skill invokes `../design-feature/scripts/{doctor,promote,sync-index,lint-ds}.{sh,ps1}`. They ship with the `design-skills` plugin and require no installation. If the `scripts/` directory is missing (i.e., a partial install), abort with `❌ HARD: scripts ausentes em ../design-feature/scripts/. Reinstale design-skills`.
+2. **In-skill scripts present.** The skill invokes these scripts (Unix `.sh` and Windows `.ps1` variants ship as pairs):
+
+   - `../design-feature/scripts/doctor.sh`
+   - `../design-feature/scripts/promote.sh`
+   - `../design-feature/scripts/sync-index.sh`
+   - `../design-feature/scripts/lint-ds.sh`
+
+   They ship with the `design-skills` plugin and require no installation. If any is missing (i.e., a partial install), abort with `❌ HARD: scripts ausentes em ../design-feature/scripts/. Reinstale design-skills`. (`validate.mjs` enforces that each path above resolves to both `.sh` and `.ps1` siblings on disk.)
 3. **Chrome MCP server available on the current harness.** This skill SNAPSHOTS the running app — without Chrome MCP the user would have to hand-translate each component, which is more work than starting fresh. Detect the server by looking for: `mcp__claude-in-chrome__*` or `mcp__chrome-devtools__*` on **Claude Code**; tools registered by `chrome-devtools` on **Gemini CLI**; tools registered by `chrome_devtools` on **Codex CLI**. If no Chrome MCP server is registered: refuse with a clear message giving the install path for the active harness — **Claude Code (preferred):** the [Claude for Chrome extension](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) activated with `claude --chrome` or `/chrome` in-session (requires Claude Code 2.0.73+; Chrome/Edge only); fallback for WSL/Brave/Arc: `claude mcp add chrome-devtools npx chrome-devtools-mcp@latest`. **Gemini CLI:** `gemini mcp add chrome-devtools npx chrome-devtools-mcp@latest`. **Codex CLI:** `codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest` (Codex's Chrome extension is currently Codex-app-only, not exposed to the CLI). OR offer to fall back to a "code-only" path where the agent reads each React/Vue file and writes vanilla JS by hand. Default to refuse; only fall back if the user explicitly asks.
 4. **design-feature bundled template available** — `bootstrap-design-system` reads `skills/design-feature/templates/ds-component-pattern.md` during Step C and Step D. The CLI install bundles both skills together (same `design-skills` package), so this is implicit, but if the template file is missing the bootstrap MUST abort with: `❌ HARD: template do design-feature não encontrado em templates/ds-component-pattern.md. Reinstale design-skills`.
 
