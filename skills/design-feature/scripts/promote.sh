@@ -21,7 +21,7 @@ fi
 # Slug must be kebab-case (matches the convention used everywhere in the skill).
 # Constrains the value so the subsequent grep and sed patterns can interpolate
 # it without regex/replacement metacharacter risk.
-if ! printf '%s' "$slug" | grep -qE '^[a-z][a-z0-9-]*$'; then
+if [[ ! "$slug" =~ ^[a-z][a-z0-9-]*$ ]]; then
   echo "promote: slug must match ^[a-z][a-z0-9-]*$ (kebab-case): $slug" >&2
   exit 4
 fi
