@@ -54,6 +54,39 @@ If a required sub-skill cannot be loaded, the Hard preconditions block below app
 
 During Phase 0.2 the skill reads a project-level agent guidelines file. It looks for the first present at cwd root, in priority order: **`AGENTS.md` → `CLAUDE.md` → `GEMINI.md`**. The captured one-line summary is recorded under `agentRules` in `.markup-design/scratch/strategy.json` along with which file produced it.
 
+## In-skill scripts (no `markup-cli` required)
+
+Deterministic operations against the Markup server are executed via shell scripts bundled with this skill at `skills/design-feature/scripts/`. The `bootstrap-design-system` skill references them through `../design-feature/scripts/`. There is no `npm install` step; the scripts use only what the host OS provides (`curl`, `bash` or PowerShell 5.1+, `grep`/`sed`/`Select-String`).
+
+**OS dispatch.** Every operation ships as a `.sh` (Unix bash) + `.ps1` (Windows PowerShell) pair. Pick by host:
+
+| Host                       | Invocation                                |
+|----------------------------|-------------------------------------------|
+| Linux, macOS, WSL          | `./scripts/<op>.sh [args]`                |
+| Windows (native, no WSL)   | `pwsh ./scripts/<op>.ps1 [args]`          |
+
+The skill prose below writes the Unix form as the canonical example; on Windows substitute the `.ps1` invocation. (The capability matrix prints which one applies to the current harness.)
+
+**Required env vars.** Set before the skill starts:
+
+| Var            | Required | Meaning                                                          |
+|----------------|----------|------------------------------------------------------------------|
+| `MARKUP_URL`   | yes      | Base URL of the Markup server, no trailing slash.                |
+| `MARKUP_TOKEN` | yes      | Bearer token sent on every request.                              |
+
+If either is unset when the skill starts, the very first `./scripts/doctor.sh` invocation in the Soft-dependency check fails with `exit 2` and a clear stderr message. The skill then refuses to advance and tells the user to set the vars.
+
+**Op index** (full reference at `scripts/README.md`):
+
+| Op             | Replaces                                                | Notes                                                  |
+|----------------|---------------------------------------------------------|--------------------------------------------------------|
+| `doctor`       | `markup-cli doctor --json`                              | GET /api/version + auth probe. Output JSON to stdout.  |
+| `mockup-upload`| `markup-cli mockup new` / `markup-cli mockup version`   | POST a mockup HTML; server distinguishes new vs version |
+| `promote`      | `markup-cli promote <file> --component <slug>`          | Local copy + marker + POST /api/ds/components          |
+| `sync-index`   | `markup-cli sync-index`                                 | POST /api/ds/sync-index                                |
+| `lint-ds`      | `markup-cli check --build --strict`                     | Pure-local structural lint; no network                 |
+| `comment`      | `markup-cli comments {list,read,reply,react,resolve}`   | Subcommand dispatcher; inline `curl` is also acceptable for one-offs |
+
 ## Hard preconditions (refuse if missing)
 
 This skill is a hard-fail wrapper unless the following are present:
