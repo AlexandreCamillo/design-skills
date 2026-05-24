@@ -787,7 +787,9 @@ When the user approves:
 
 1. Run `./scripts/promote.sh <mockup-file> <slug>` (Windows: `pwsh ./scripts/promote.ps1 <mockup-file> <slug>`). It copies the mockup into `docs/design/design-system/NN-<slug>.html` (auto-computing the next `NN`), ensures the `data-ds-component="<slug>"` marker is present on `<body>`, and uploads to the DS folder via `POST /api/ds/components`.
 
-   **`[se Markup offline]`** When `MARKUP_URL`/`MARKUP_TOKEN` are unset OR the server is unreachable, `promote.sh` still writes the local file and the marker (exits non-zero with the upload skipped). Tell the user the local file is on disk; the server upload can be re-run later by re-invoking the same command once the env vars are set.
+   **`[se env ausente]`** When `MARKUP_URL`/`MARKUP_TOKEN` are unset, `promote.sh` exits `2` immediately — nothing is written. Tell the user to set the env vars and re-invoke.
+
+   **`[se Markup offline]`** When env vars are set but the server is unreachable, `promote.sh` writes the local file (with the marker injected) and exits `1` with stderr noting upload failed. Tell the user the local file is on disk; the server upload can be re-run later by re-invoking the same command once the server is back up.
 
 2. **Bake locked choices + strip tweaker** (skill-side, via the harness's file-edit tool):
    - Delete the entire `<style>...</style>` block scoped to `.mdtk-tweaker`.

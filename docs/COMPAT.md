@@ -65,6 +65,6 @@ The range uses semver `>=` shape (no `^`, no `~`, no exact pin). The lower bound
 `docs/COMPAT.md` is referenced from:
 
 - `skills/design-feature/scripts/README.md` — env-var contract + OS-resolution rule referenced from the §"Script invocation contract" section above.
-- `skills/design-feature/SKILL.md` — soft-dependency checks (`compat.cli` / `compat.markup` semver compare).
-- `skills/bootstrap-design-system/SKILL.md` — precondition 2 (markup-cli install + recommended version).
+- `skills/design-feature/SKILL.md` — §"Soft dependencies" reads env vars + invokes `./scripts/doctor.sh` to check Markup-server reachability against `compat.markup`; §"In-skill scripts" documents the OS-dispatch + env-var contract.
+- `skills/bootstrap-design-system/SKILL.md` — precondition 2 (in-skill scripts present at `../design-feature/scripts/`).
 - `validate.mjs` — the cross-cutting validator implements the rules described above.
