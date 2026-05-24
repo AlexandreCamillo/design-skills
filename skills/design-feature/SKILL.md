@@ -101,21 +101,18 @@ This skill is a hard-fail wrapper unless the following are present:
 
 After the hard check passes, detect optional dependencies and surface a one-block disclaimer **before any other action**:
 
-1. **`markup-cli` CLI** — run `markup-cli --version` via the harness's shell tool (`Bash` / `run_shell_command` / native shell). If absent, the skill still functions but the user has to perform repetitive operations manually. **Also compare the version against this skill's frontmatter `compat.cli`** — if below, HARD REFUSE with the upgrade message in the disclaimer template; do not proceed.
+1. **Markup-server env vars set** — confirm `MARKUP_URL` and `MARKUP_TOKEN` are present (`printenv MARKUP_URL`, `printenv MARKUP_TOKEN`; on Windows, `$env:MARKUP_URL`, `$env:MARKUP_TOKEN`). If either is missing, comment iteration falls back to the **companion-server flow** (see Phase 1 hosting) — mockups stay local but get served over HTTP via the `brainstorming` skill's mini-server, optionally exposed via a Cloudflare quick tunnel. No hard refusal; the skill still functions in companion mode.
 
-2. **Markup online connected** — run `markup-cli doctor --json` and parse the output. Schema (v0.1.0+):
+2. **Markup-server reachable** — only when soft-dep 1 passed. Run `./scripts/doctor.sh` (or `pwsh ./scripts/doctor.ps1` on Windows) and parse the output. Schema:
 
    ```json
-   {
-     "cli":    { "version": "0.1.0", "compat": { "markup": ">=0.2.0" } },
-     "markup": { "configured": true, "url": "...", "actual": "0.2.5", "api": "v1", "min": ">=0.2.0", "ok": true }
-   }
+   { "markup": { "configured": true, "url": "...", "actual": "0.2.5", "api": "v1", "ok": true } }
    ```
 
-   - Compare `cli.version` against this skill's frontmatter `compat.cli`. If below, HARD REFUSE (same as soft-dep 1's check; this is the structured re-check).
-   - If `markup.configured === false`: comment iteration falls back to the **companion-server flow** (see Phase 1 hosting) — mockups stay local but get served over HTTP via the `brainstorming` skill's mini-server, optionally exposed via a Cloudflare quick tunnel.
-   - If `markup.configured === true` but `markup.actual` does not satisfy this skill's frontmatter `compat.markup` (semver range): degrade with a ⚠ in the capability matrix — Markup-online flow is still attempted; many commands work even on slightly-old servers. Don't hard-refuse.
-   - If `markup.configured === true` and `markup.actual === "unknown"` (i.e., the server is too old to expose `/api/version`): same as the previous case — degrade with warning.
+   - If `markup.ok === true` and `markup.actual` satisfies this skill's frontmatter `compat.markup` (semver range): full Markup-online flow.
+   - If `markup.ok === true` but `markup.actual` does not satisfy `compat.markup`: degrade with a ⚠ in the capability matrix — Markup-online flow still attempted; many commands work on slightly-old servers. Don't hard-refuse.
+   - If `markup.ok === true` and `markup.actual === "unknown"` (server too old to expose `/api/version`): same as the previous case — degrade with warning.
+   - If `markup.ok === false` (network error, auth failure): fall back to companion-server flow same as if env vars were missing.
 
 3. **Chrome MCP server** — check whether any Chrome MCP tools are registered. On **Claude Code**, look for `mcp__claude-in-chrome__*` (Anthropic's plugin) or `mcp__chrome-devtools__*` (Google's `chrome-devtools-mcp`). On **Gemini CLI**, look for tools under the `chrome-devtools` server registered via `gemini mcp add`. On **Codex CLI**, look for tools under the `chrome_devtools` server defined in `~/.codex/config.toml`. If no Chrome MCP server is registered on the current harness, the Phase 5 visual+behavior QA falls back to the manual checklist printed for the user.
 
@@ -127,20 +124,16 @@ After the hard check passes, detect optional dependencies and surface a one-bloc
 design-feature ready. Capability matrix:
 
   ✓ HARD: superpowers <version> detectado
-  {cli line:        ✓ markup-cli vX.Y.Z (satisfaz compat.cli <range>)
-                    |  ✗ markup-cli vX.Y.Z abaixo de compat.cli <range>
-                                                ↳ atualize: npm i -g markup-cli@latest (ou git+https install)
-                                                ↳ recusando prosseguir
-                    |  ✗ binário ausente do PATH
-                                                ↳ instalar: `npm i -g markup-cli` (fase pública) ou git-based install enquanto privado
-                                                ↳ sem ele: builds + uploads manuais}
-  {markup online:   ✓ conectado em <url> @ <X.Y.Z> (satisfaz compat.markup <range>)
-                    |  ⚠ conectado em <url> @ <X.Y.Z>, abaixo de compat.markup <range>
+  {env:             ✓ MARKUP_URL e MARKUP_TOKEN setados
+                    |  ✗ MARKUP_URL e/ou MARKUP_TOKEN ausentes
+                                                ↳ setar antes de invocar a skill (export MARKUP_URL=…; export MARKUP_TOKEN=…)
+                                                ↳ sem eles: hosting via companion-server}
+  {markup online:   ✓ ./scripts/doctor.sh reportou <url> @ <X.Y.Z> (satisfaz compat.markup <range>)
+                    |  ⚠ ./scripts/doctor.sh reportou <url> @ <X.Y.Z>, abaixo de compat.markup <range>
                                                 ↳ degradando: muitos comandos ainda funcionam; suba o servidor Markup ou pin esta skill numa tag mais antiga
-                    |  ⚠ conectado em <url>, /api/version retornou unknown
+                    |  ⚠ ./scripts/doctor.sh reportou <url>, mas /api/version retornou unknown
                                                 ↳ degradando: servidor velho demais pra anunciar a versão
-                    |  ✗ markup online não conectado
-                                                ↳ rode: markup-cli connect <url>
+                    |  ✗ ./scripts/doctor.sh falhou ou env vars ausentes
                                                 ↳ sem ele: hosting via companion-server}
   {chrome:          ✓ Chrome MCP disponível (server: <server-name>, tools resolvidas em state.json:chromeMcp)  |  ✗ nenhum servidor Chrome MCP registrado
                                               ↳ instalar no Claude Code (preferido): extensão Claude for Chrome + `claude --chrome` (Chrome/Edge, Claude Code 2.0.73+)
