@@ -666,12 +666,12 @@ O tweaker é vinculado a um único `data-ds-component`. Se sua feature combina N
 
 #### `[se Markup online]` Upload to Markup
 
-1. Run `markup-cli mockup new <slug>` for the first version, or `markup-cli mockup version <file>` for iterations.
-2. The CLI returns a hosted URL.
-3. Print the URL to the user. Iterate via the existing Markup comments flow:
-   - `markup-cli comments list <file> --status open --json`
-   - `markup-cli comments read <annotationId> --json`
-   - Decide: edit mockup → `markup-cli mockup version`; clarify → `markup-cli comments reply --body`; push back → `markup-cli comments reply` + `markup-cli comments react --emoji 🤔`; no change → `markup-cli comments resolve`. After applying changes: `markup-cli comments react <messageId> --emoji ✅`.
+1. Run `./scripts/mockup-upload.sh <mockup-file.html> <slug>` (Windows: `pwsh ./scripts/mockup-upload.ps1 <mockup-file.html> <slug>`). For iterations on an existing mockup, omit the `<slug>` arg — the server treats repeated POSTs of the same slug as new versions.
+2. The script returns a JSON blob to stdout; read the `url` field as the hosted URL, the `id` field as the mockup ID (needed for later comment calls).
+3. Print the URL to the user. Iterate via the comments flow:
+   - `./scripts/comment.sh list <mockup-id> --status open` — list open threads (or `pwsh ./scripts/comment.ps1 list <id> --status open` on Windows).
+   - `./scripts/comment.sh read <comment-id>` — fetch a single comment.
+   - Decide: edit mockup → re-run `./scripts/mockup-upload.sh`; clarify → `./scripts/comment.sh reply <comment-id> "<body>"`; push back → reply + `./scripts/comment.sh react <comment-id> 🤔`; no change → `./scripts/comment.sh resolve <comment-id>`. After applying changes: `./scripts/comment.sh react <message-id> ✅`.
    - Re-pause with the checkpoint pattern: `Mockup hospedado em <url>. Comente no Markup, e diga "continue" quando quiser que eu processe o feedback.`
 
 #### `[se Markup ausente]` Companion server fallback
