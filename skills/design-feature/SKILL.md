@@ -785,9 +785,9 @@ When the user approves:
 
 ## Phase 2 — Promote (bake locked choices, strip tweaker)
 
-1. **`[se CLI]`** Run `markup-cli promote <mockup-file> --component <slug>` — copies the mockup into `docs/design/design-system/NN-<slug>.html`, ensures the `data-ds-component` marker, uploads to the DS folder, runs `build`, calls `sync-index`.
+1. Run `./scripts/promote.sh <mockup-file> <slug>` (Windows: `pwsh ./scripts/promote.ps1 <mockup-file> <slug>`). It copies the mockup into `docs/design/design-system/NN-<slug>.html` (auto-computing the next `NN`), ensures the `data-ds-component="<slug>"` marker is present on `<body>`, and uploads to the DS folder via `POST /api/ds/components`.
 
-   **`[manual fallback]`** Walk the user through: copy the file by hand to `docs/design/design-system/NN-<slug>.html` (next NN); make sure the marker is present; skip uploads if they don't have the CLI installed.
+   **`[se Markup offline]`** When `MARKUP_URL`/`MARKUP_TOKEN` are unset OR the server is unreachable, `promote.sh` still writes the local file and the marker (exits non-zero with the upload skipped). Tell the user the local file is on disk; the server upload can be re-run later by re-invoking the same command once the env vars are set.
 
 2. **Bake locked choices + strip tweaker** (skill-side, via the harness's file-edit tool):
    - Delete the entire `<style>...</style>` block scoped to `.mdtk-tweaker`.
@@ -841,13 +841,11 @@ When the user approves:
 
    If any item fails, **do not advance to step 4** (`sync-index`). Fix the reformat and re-run the checklist. The Phase 2 → 3 gate also blocks on this checklist (see "Phase 2 gate" below).
 
-4. **`[se CLI]`** `markup-cli sync-index`.
+4. Run `./scripts/sync-index.sh` (Windows: `pwsh ./scripts/sync-index.ps1`).
 
-   **`[manual fallback]`** Tell the user the DS file is on disk and the index is stale; offer to re-run this step later if they install the CLI.
+   **`[se Markup offline]`** Skip — tell the user the DS file is on disk and the server index is stale; the same command can be re-run later when env vars are set.
 
-5. **`[se CLI]`** Run `markup-cli check --build --strict` — must exit 0.
-
-   **`[manual fallback]`** Print the structural invariants (marker present, IIFE in script, single root element, no `Tweaker.register` left) and ask the user to confirm.
+5. Run `./scripts/lint-ds.sh docs/design/design-system/NN-<slug>.html` (Windows: `pwsh ./scripts/lint-ds.ps1 ...`) — must exit 0. This is pure-local; no network or env vars required. On non-zero exit, read stderr for the failing section (§1/§4/§7/§8), fix the DS file, re-run.
 
 6. **Commit** on branch `design/<slug>` (create if needed):
 
@@ -860,8 +858,7 @@ When the user approves:
 ```
 <HARD-GATE>
 Do NOT invoke brainstorming for tech spec until:
-  - markup-cli check --build --strict exited 0 (or manual structural review confirmed by user
-    if CLI absent), AND
+  - ./scripts/lint-ds.sh on the DS file exited 0, AND
   - The Phase 2.3 reformat checklist passed (§1 has ≥1 grid cell, §4 snippet is
     non-empty, §7 has dl.tokens, §8 has ≥1 bullet), AND
   - The DS file has been committed.
