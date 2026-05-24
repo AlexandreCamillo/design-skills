@@ -111,7 +111,7 @@ codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
 
 1. **Discovery + framework + strategy.** Detect `package.json`, agent guidelines, project docs. Present a framework-aware strategy menu. Persist to `.markup-design/scratch/strategy.json`. Greenfield projects get a separate manual-pick prompt.
 2. **Design brainstorm + ideia mockup.** `brainstorming` (FASTPATH) + `frontend-design`. Mockup gets the bundled tweaker panel. Iterates via Markup comments or the companion server. Gate: user approves + pastes tweaker JSON.
-3. **Promote.** Bake locked tweaker choices into the mockup, strip the tweaker scaffolding, reformat into a DS file under `docs/design/design-system/`. Gate: `markup-cli check --build` passes.
+3. **Promote.** Bake locked tweaker choices into the mockup, strip the tweaker scaffolding, reformat into a DS file under `docs/design/design-system/`. Gate: `./scripts/promote.sh` exits 0 (DS file written + server upload confirmed).
 4. **Technical brainstorm.** `brainstorming` scoped to implementation, seeded with the DS files affected and the target code. Gate: tech spec approved + branch is not main/master.
 5. **Plan + execute.** `writing-plans` (DS edits as first-class tasks) + `subagent-driven-development`. Gate: tests pass + `verification-before-completion` invoked + any DS edits re-validated.
 6. **Visual + behavior QA.** Chrome MCP opens the live route + DS file side-by-side. Scenarios derive from the DS file's State decision matrix. Gate: zero drift or a documented exception.
@@ -136,25 +136,23 @@ Hard dependency: the **[superpowers](https://github.com/obra/superpowers)** plug
 
 Soft dependencies (skill degrades gracefully):
 
-- **[`markup-cli`](https://github.com/AlexandreCamillo/markup-cli)** — for build, sync-index, mockup uploads, comment iteration. Without it, the skill walks the user through manual equivalents.
-- **A connected [Markup](https://markup.alego.cloud) instance** — for hosted mockups + comment iteration. Without it, the companion server serves mockups over HTTP locally (with optional Cloudflare quick tunnel).
+- **A connected [Markup](https://markup.alego.cloud) instance** — for hosted mockups + comment iteration. Without it (env vars `MARKUP_URL`/`MARKUP_TOKEN` unset), the in-skill scripts skip network operations and the skill walks the user through manual equivalents. See `skills/design-feature/scripts/README.md` for the full env-var and OS-dispatch contract.
 - **Chrome MCP** (Claude for Chrome on Claude Code; `chrome-devtools-mcp` elsewhere). Without it, `design-feature` Phase 5 prints a manual checklist; `bootstrap-design-system` refuses to run unless the user opts into a code-only fallback.
 
 ### Compatibility
 
-Each skill declares its minimum supported `markup-cli` and Markup server versions in SKILL.md frontmatter:
+Each skill declares its minimum supported Markup server version in SKILL.md frontmatter:
 
 ```yaml
 compat:
-  cli: ">=0.1.0"
   markup: ">=0.2.0"
 ```
 
-| design-skills tag | Min markup-cli | Min Markup |
-|---|---|---|
-| v0.5.0 | 0.1.0 | 0.2.0 |
+| design-skills tag | Min Markup server |
+|---|---|
+| v0.5.0 | 0.2.0 |
 
-At startup the skill runs `markup-cli doctor --json` and refuses to proceed if `cli.version` is below `compat.cli`. The Markup-server version is enforced softer (degrade-with-warning) so the offline flows remain available against an out-of-date server.
+At startup the skill invokes `./scripts/doctor.sh` (Unix) / `pwsh ./scripts/doctor.ps1` (Windows) to check Markup-server reachability and version against `compat.markup`. The server version is enforced with a soft degrade-with-warning so the offline flows remain available against an out-of-date server. `markup-cli` is no longer a dependency — see CHANGELOG (SP10, 2026-05-24).
 
 ## Contributing
 
@@ -165,7 +163,7 @@ node validate.mjs
 # or: npm test
 ```
 
-The validator checks frontmatter shape (including `compat.cli` + `compat.markup` semver ranges), body content, that every `markup-cli <cmd>` reference resolves to a real CLI command, and that bundled templates are present.
+The validator checks frontmatter shape (including `compat.markup` semver ranges), body content, script invocation references, and that bundled templates are present.
 
 ## Distribution model
 
