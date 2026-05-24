@@ -8,6 +8,12 @@ $ErrorActionPreference = 'Stop'
 if (-not $env:MARKUP_URL)   { [Console]::Error.WriteLine('MARKUP_URL not set');   exit 2 }
 if (-not $env:MARKUP_TOKEN) { [Console]::Error.WriteLine('MARKUP_TOKEN not set'); exit 2 }
 if (-not (Test-Path $File)) { [Console]::Error.WriteLine("promote: source file not found: $File"); exit 4 }
+# Slug must be kebab-case (matches the convention used everywhere in the skill).
+# Constrains the value so the subsequent -match/regex::Replace patterns can interpolate
+# it without regex/replacement metacharacter risk.
+if ($Slug -notmatch '^[a-z][a-z0-9-]*$') {
+  [Console]::Error.WriteLine("promote: slug must match ^[a-z][a-z0-9-]*$ (kebab-case): $Slug"); exit 4
+}
 
 $dsDir = 'docs/design/design-system'
 New-Item -ItemType Directory -Force -Path $dsDir | Out-Null
