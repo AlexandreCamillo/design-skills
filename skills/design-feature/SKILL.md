@@ -749,7 +749,7 @@ If the companion server cannot be started (e.g., the `brainstorming` skill is mi
 
 ```
 <HARD-GATE>
-Do NOT invoke markup-cli promote, edit any file under docs/design/design-system/,
+Do NOT invoke ./scripts/promote.sh, edit any file under docs/design/design-system/,
 or commit anything until ALL of the following are true:
   - User said "aprovado" / "approved" / "ship it" explicitly in this transcript.
   - User pasted the tweaker JSON { slug, version, choices }.
@@ -780,7 +780,7 @@ When the user approves:
    - `version` must equal the `VERSION` constant in `templates/tweaker.html` (currently `1`). Refuse with the PT-BR message above on mismatch — both `> VERSION` (upgrade design-skills) and `< VERSION` (regenerate mockup) abort, do not advance. Bump `VERSION` in the template and this gate together when the payload shape changes.
    - `choices` must be a flat object AND non-empty. An empty `choices` object means the mockup shipped without any explicit knobs — refuse with the empty-tweaker message above. Do not write state.json on refusal.
 4. Write `state.json` (see schema below).
-5. `[se Markup online]` close any still-open threads: `markup-cli comments resolve <id> --body "closed by approval"`.
+5. `[se Markup online]` close any still-open threads: `./scripts/comment.sh resolve <id> "closed by approval"`.
 6. Ask the user: *"É um novo componente do DS, uma variante de um existente, ou composição de existentes? Se novo, qual o slug?"*
 
 ## Phase 2 — Promote (bake locked choices, strip tweaker)
