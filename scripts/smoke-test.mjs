@@ -3,9 +3,11 @@
 // Reads test-fixtures/sample-react-app/ and the strategies.json catalog,
 // then asserts the computed strategy matches the expected golden.
 
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawnSync, spawn } from 'node:child_process';
+import { tmpdir } from 'node:os';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..');
@@ -138,3 +140,78 @@ if (a !== e) {
 }
 
 console.log('✓ smoke-test: Phase 0 detection produces the expected strategy.json shape (react-antd-rhf).');
+
+// SP10 — Exercise the shell scripts against the mock Markup server. Unix only;
+// the .ps1 variants would need a Windows CI step (TODO: when available, mirror
+// these assertions through pwsh).
+
+const SCRIPTS_DIR = join(repoRoot, 'skills/design-feature/scripts');
+
+function startMock() {
+  const child = spawn(process.execPath, [join(repoRoot, 'scripts/mock-markup-server.mjs'), '0'], {
+    stdio: ['ignore', 'pipe', 'inherit'],
+  });
+  return new Promise((resolve, reject) => {
+    let buf = '';
+    const t = setTimeout(() => reject(new Error('mock server failed to announce port within 3s')), 3000);
+    child.stdout.on('data', (d) => {
+      buf += d.toString();
+      const m = buf.match(/listening:(\d+)/);
+      if (m) { clearTimeout(t); resolve({ child, port: Number(m[1]) }); }
+    });
+  });
+}
+
+function runScript(scriptPath, args, env) {
+  return spawnSync(scriptPath, args, { encoding: 'utf8', env: { ...process.env, ...env } });
+}
+
+async function smokeScripts() {
+  if (process.platform === 'win32') {
+    console.log('⚠ smoke-test: SP10 script smoke skipped on Windows (TODO: pwsh variant).');
+    return;
+  }
+  const { child, port } = await startMock();
+  const baseEnv = { MARKUP_URL: `http://localhost:${port}`, MARKUP_TOKEN: 'test-token' };
+  try {
+    // doctor
+    let r = runScript(join(SCRIPTS_DIR, 'doctor.sh'), [], baseEnv);
+    if (r.status !== 0) fail(`doctor.sh exited ${r.status}: ${r.stderr}`);
+    if (!/"actual":"0\.2\.7"/.test(r.stdout)) fail(`doctor.sh stdout missing version: ${r.stdout}`);
+
+    // sync-index
+    r = runScript(join(SCRIPTS_DIR, 'sync-index.sh'), [], baseEnv);
+    if (r.status !== 0) fail(`sync-index.sh exited ${r.status}: ${r.stderr}`);
+
+    // mockup-upload
+    const tmp = mkdtempSync(join(tmpdir(), 'sp10-'));
+    const mockFile = join(tmp, 'm.html');
+    writeFileSync(mockFile, '<html><body>x</body></html>');
+    r = runScript(join(SCRIPTS_DIR, 'mockup-upload.sh'), [mockFile, 'mock'], baseEnv);
+    if (r.status !== 0) fail(`mockup-upload.sh exited ${r.status}: ${r.stderr}`);
+    if (!/"id":"m_test"/.test(r.stdout)) fail(`mockup-upload.sh stdout missing id: ${r.stdout}`);
+
+    // lint-ds — good + bad
+    for (const fix of ['good.html']) {
+      r = runScript(join(SCRIPTS_DIR, 'lint-ds.sh'), [join(repoRoot, 'test-fixtures/ds-lint', fix)], {});
+      if (r.status !== 0) fail(`lint-ds.sh ${fix} exited ${r.status}: ${r.stderr}`);
+    }
+    for (const fix of ['bad-missing-grid.html', 'bad-empty-api.html', 'bad-missing-tokens.html', 'bad-empty-behavior.html']) {
+      r = runScript(join(SCRIPTS_DIR, 'lint-ds.sh'), [join(repoRoot, 'test-fixtures/ds-lint', fix)], {});
+      if (r.status === 0) fail(`lint-ds.sh ${fix} unexpectedly passed`);
+    }
+
+    // comment — list + read + reply + react + resolve
+    for (const sub of [['list', 'm_test'], ['read', 'c_test'], ['reply', 'c_test', 'hi'], ['react', 'c_test', '✅'], ['resolve', 'c_test', 'done']]) {
+      r = runScript(join(SCRIPTS_DIR, 'comment.sh'), sub, baseEnv);
+      if (r.status !== 0) fail(`comment.sh ${sub.join(' ')} exited ${r.status}: ${r.stderr}`);
+    }
+
+    rmSync(tmp, { recursive: true, force: true });
+  } finally {
+    child.kill('SIGTERM');
+  }
+  console.log('✓ smoke-test: SP10 shell scripts pass against mock Markup server.');
+}
+
+await smokeScripts();
