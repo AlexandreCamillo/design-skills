@@ -884,7 +884,7 @@ Do NOT invoke writing-plans until ALL of the following are true:
 
 1. **Invoke `writing-plans`** with extra instruction:
 
-   > DS adjustments are first-class plan tasks. If the implementation requires changes to a DS component, include explicit tasks to edit the DS file (following `templates/ds-component-pattern.md`, with the Code API section adapted to the strategy in `.markup-design/scratch/strategy.json`), run `markup-cli check --build --strict` (or the manual structural review when CLI is absent), and commit with `feat(ds): amend <slug> (driven by <reason>)`. Any task that edits a DS file MUST be followed by `markup-cli check --build --strict` in the plan. Do NOT include tasks that update QA sidecars or full-prototype files — those are no longer part of the workflow.
+   > DS adjustments are first-class plan tasks. If the implementation requires changes to a DS component, include explicit tasks to edit the DS file (following `templates/ds-component-pattern.md`, with the Code API section adapted to the strategy in `.markup-design/scratch/strategy.json`), run `markup-cli check --build --strict` (or the manual structural review when CLI is absent), and commit with `feat(ds): amend <slug> (driven by <reason>)`. Any task that edits a DS file MUST be followed by `markup-cli check --build --strict` in the plan.
 
 2. **Post-plan checklist (run on the file `writing-plans` just wrote, before invoking execution).** Two heuristic grep-based checks. Both run; surface any flag to the user and wait for explicit confirm-or-revise before advancing to step 3.
 
@@ -952,7 +952,7 @@ Wait for the user to confirm before re-entering Phase 1.
 
 ## Phase 5 — Visual+behavior QA
 
-Driven by the **State decision matrix table inside the DS file** (no sidecar).
+Driven by the **State decision matrix table inside the DS file**.
 
 ### When Chrome MCP is available
 
@@ -1089,8 +1089,6 @@ Diga "QA passes" quando estiver satisfeito; "QA fails" + descreva o drift.
 - The bundled tweaker template at `templates/tweaker.html` is the single source of truth — never regenerate it per feature; only Read+inline.
 - The bundled DS pattern template at `templates/ds-component-pattern.md` is the single source of truth for DS file structure — Read it before writing or editing any DS file.
 - Strategy choice persists in `.markup-design/scratch/strategy.json`. Read it before writing the "Code API" section of any DS file. Never assume a strategy from `package.json` on-the-fly — always go through Phase 0.
-- Never upload prototype or write full-prototype files (no `markup-cli upload-prototype` invocation, no edits to `_template.html` / `_glue.js` / `full-prototype/index.html`).
-- Never create or update `<slug>.qa.js` sidecars. The skill ignores any existing sidecars in consumer projects.
 - Write `state.json` to `.markup-design/scratch/<feature-slug>/` after every gate so the workflow can resume after a context reset.
 
 ## State file

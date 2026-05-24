@@ -15,7 +15,7 @@ const SKILLS_DIR = resolve(here, 'skills');
 const KNOWN_CLI_COMMANDS = new Set([
   'init', 'doctor', 'build', 'sync-index', 'check', 'where',
   'connect', 'mockup', 'mockup new', 'mockup version', 'mockup list', 'mockup archive',
-  'promote', 'upload-prototype',
+  'promote',
   'comments', 'comments list', 'comments read', 'comments reply', 'comments react',
   'comments resolve', 'comments region',
   'sync-queue',

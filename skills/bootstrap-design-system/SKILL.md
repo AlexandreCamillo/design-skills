@@ -56,10 +56,6 @@ Componentes são processados em ordem de tier — atoms portam automaticamente,
 molecules recebem revisão em batelada, organisms passam por gate por item.
 Você pode pausar e retomar.
 
-Esta skill NÃO produz full-prototype (página assemblada misturando todos os
-componentes). Produz apenas DS files individuais. Se quiser um full-prototype,
-monte manualmente depois do bootstrap terminar.
-
 Repositório: https://github.com/AlexandreCamillo/markup-cli-toolkit
 
 Continuar? (responda "sim" pra prosseguir)
@@ -305,7 +301,7 @@ For each component (in inventory tier order):
    - `useContext` consumers → opts arguments to `init()` (e.g., `init(root, { user, theme, onSelect })`).
    - Render functions / `children` props → DOM templates inside the marker subtree (the snapshot already has them).
 2. **Write the vanilla JS** into the IIFE in the DS file. Strict isolation: no shared closures with other components; everything is namespaced under `window.DS.<slug>`.
-3. **Populate sections 5 and 8 of the DS file** (instead of creating a sidecar):
+3. **Populate sections 5 and 8 of the DS file**:
    - For each interaction with a discernible state (hover, focus, disabled, loading, error, success, expanded, etc.), append a row to **§5 State decision matrix**: state · trigger · visual · aria.
    - For each interaction's runtime contract, append a bullet to **§8 Behavior**.
    - If the component has fewer than 3 states by the end of porting, the §5 matrix is omitted (it's not required by the bundled template at that count). §8 is still populated.
@@ -380,8 +376,6 @@ For each component (in inventory tier order):
        reusar a estratégia que você escolheu no bootstrap (.markup-design/scratch/strategy.json).
      · Re-rodar snapshots individuais depois de mudanças de design via:
          markup-cli bootstrap snapshot <slug>
-     · Pra montar um full-prototype: faz manual — esta skill produz só os
-       DS files individuais, não _template.html / _glue.js / full-prototype/index.html.
    ```
 
 ## Known limitations (document in the bootstrap status section)
