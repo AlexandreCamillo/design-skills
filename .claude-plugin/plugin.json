@@ -1,7 +1,7 @@
 {
   "name": "design-skills",
   "description": "Superpowers-compatible skills (design-feature, bootstrap-design-system) that orchestrate the full feature workflow from idea-mockup through implementation parity. Hard-depends on the superpowers plugin (calls brainstorming, frontend-design, writing-plans). Soft-depends on markup-cli, a connected Markup online instance, and Chrome MCP.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "author": {
     "name": "Alexandre Camillo",
     "email": "acamillo.goncalves@gmail.com"
