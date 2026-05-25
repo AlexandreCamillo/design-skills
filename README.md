@@ -50,15 +50,8 @@ design-skills ships as a single-plugin marketplace.
 Codex ships a native `skill-installer` skill (from [`openai/skills`](https://github.com/openai/skills)).
 
 - Tell Codex in chat:
-
-  > Use skill-installer to install `design-feature` and `bootstrap-design-system` from `AlexandreCamillo/design-skills` (paths `skills/design-feature` and `skills/bootstrap-design-system`).
-
-- The skills install into `~/.codex/skills/` and become discoverable on the next restart. Add `--ref v0.5.0` to the request to pin a tag.
-
-- Fallback for older Codex versions without `skill-installer`:
-
-  ```bash
-  git clone https://github.com/AlexandreCamillo/design-skills ~/.codex/skills/design-skills
+  ```md
+  Use skill-installer to install `design-feature` and `bootstrap-design-system` from https://github.com/AlexandreCamillo/design-skills
   ```
 
 ### Gemini CLI
@@ -167,10 +160,6 @@ node validate.mjs
 ```
 
 The validator checks frontmatter shape (including `compat.markup` semver ranges), body content, script invocation references, and that bundled templates are present.
-
-## Distribution model
-
-These skills are distributed via the GitHub repo, not npm. Each harness's plugin manager pulls the repo directly: Claude Code via `claude plugin install`, Gemini CLI via `gemini extensions install`, Codex CLI via the native `skill-installer`. There is no `design-skills` npm package — skills don't import code; they read instructions, so npm adds nothing over a tagged git ref.
 
 ## License
 
