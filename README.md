@@ -1,12 +1,12 @@
 # design-skills
 
-Keep your **Design System and your code in sync** as you build features. design-skills is a pair of agent skills that wrap the loop your coding agent already runs — brainstorm, mockup, promote, plan, execute, QA — so the DS file and the implementation never drift apart.
+Keep your **Design System and your code in sync** as you build features. design-skills is a pair of agent skills that wrap the loop your coding agent already runs (brainstorm, mockup, promote, plan, execute, QA), so the DS file and the implementation never drift apart.
 
 ## Quickstart
 
 Install design-skills in your harness: [Claude Code](#claude-code), [Codex CLI](#codex-cli), [Gemini CLI](#gemini-cli), [Other harnesses](#other-harnesses).
 
-Then ask your agent to design or build a feature with a visible UI — the `design-feature` skill takes over from there.
+Then ask your agent to design or build a feature with a visible UI. The `design-feature` skill takes over from there.
 
 ## How it works
 
@@ -20,7 +20,7 @@ When you approve, it **promotes the mockup into a canonical DS file** under `doc
 
 Then it **plans + executes the implementation** via `superpowers`'s `writing-plans` + `subagent-driven-development` skills, with DS-file edits as first-class tasks.
 
-Finally, it **QAs the live route against the DS file** via Chrome MCP — opening both side-by-side, applying the triggers from the State decision matrix, and reporting deltas until parity (or a documented exception).
+Finally, it **QAs the live route against the DS file** via Chrome MCP, opening both side-by-side, applying the triggers from the State decision matrix, and reporting deltas until parity (or a documented exception).
 
 If a session ends mid-loop, the skill resumes from `.markup-design/scratch/<slug>/state.json` after a context reset.
 
@@ -66,13 +66,13 @@ Codex ships a native `skill-installer` skill (from [`openai/skills`](https://git
 
 ### Other harnesses
 
-Each `SKILL.md` is plain Markdown with YAML frontmatter — drop it wherever your harness loads skills (OpenCode, Cursor, Copilot CLI). The cross-harness tool reference at the top of each `SKILL.md` covers Claude Code, Gemini CLI, and Codex CLI explicitly; for others, the model translates using the harness's own docs.
+Each `SKILL.md` is plain Markdown with YAML frontmatter. Drop it wherever your harness loads skills (OpenCode, Cursor, Copilot CLI). The cross-harness tool reference at the top of each `SKILL.md` covers Claude Code, Gemini CLI, and Codex CLI explicitly; for others, the model translates using the harness's own docs.
 
 ## Browser automation setup (per harness)
 
 Phase 5 visual QA in `design-feature` and Step C snapshot in `bootstrap-design-system` need the agent to drive a real browser. Each harness has its own preferred path.
 
-### Claude Code — Claude for Chrome extension (preferred)
+### Claude Code: Claude for Chrome extension (preferred)
 
 1. Install the [Claude for Chrome extension](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) (Chrome Web Store, v1.0.36+).
 2. Launch with `claude --chrome`, or run `/chrome` inside an existing session. Toggle "Enabled by default" if you want it always on (uses more context).
@@ -90,7 +90,7 @@ claude mcp add chrome-devtools npx chrome-devtools-mcp@latest
 gemini mcp add chrome-devtools npx chrome-devtools-mcp@latest
 ```
 
-Gemini CLI v0.37+ also exposes a `@browser_agent` shortcut on top of the same server — the skill doesn't depend on it, but you can use it directly from the prompt.
+Gemini CLI v0.37+ also exposes a `@browser_agent` shortcut on top of the same server; the skill doesn't depend on it, but you can use it directly from the prompt.
 
 ### Codex CLI
 
@@ -98,7 +98,7 @@ Gemini CLI v0.37+ also exposes a `@browser_agent` shortcut on top of the same se
 codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
 ```
 
-(Writes to `~/.codex/config.toml`.) Codex's own Chrome extension is currently a Codex-app-only feature and is not exposed to the CLI — `chrome-devtools-mcp` is the only path for the CLI today.
+(Writes to `~/.codex/config.toml`.) Codex's own Chrome extension is currently a Codex-app-only feature and is not exposed to the CLI; `chrome-devtools-mcp` is the only path for the CLI today.
 
 ## The 6-phase workflow
 
@@ -120,19 +120,19 @@ Each gate writes `state.json` so the workflow resumes cleanly after a context re
 
 Bundled templates the skills read at runtime:
 
-- `templates/tweaker.html` — inlined into every ideia mockup; provides the draggable tweaker panel + Copy JSON button.
-- `templates/ds-component-pattern.md` — the pattern every DS file follows after promotion; includes a framework × strategy adaptation guide for the "Code API" section.
+- `templates/tweaker.html`: inlined into every ideia mockup; provides the draggable tweaker panel + Copy JSON button.
+- `templates/ds-component-pattern.md`: the pattern every DS file follows after promotion; includes a framework × strategy adaptation guide for the "Code API" section.
 
 ## Dependencies
 
-Hard dependencies — design-skills refuses to run if either is missing:
+Hard dependencies. design-skills refuses to run if either is missing:
 
-- **[superpowers](https://github.com/obra/superpowers)** — provides `brainstorming`, `writing-plans`, and `subagent-driven-development`. Install on Claude Code with `claude plugin install obra/superpowers`; on Gemini CLI with `gemini extensions install obra/superpowers`; on Codex CLI via `/plugins` → search `superpowers` → Install Plugin.
-- **[frontend-design](https://github.com/anthropics/claude-code/tree/main/plugins/frontend-design)** — Anthropic's official skill for generating the Phase 2 mockup, shipped via the `claude-code-plugins` marketplace in `anthropics/claude-code`. Install on Claude Code with `claude plugin marketplace add anthropics/claude-code && claude plugin install frontend-design@claude-code-plugins`. For other harnesses, drop `plugins/frontend-design/skills/frontend-design/SKILL.md` into the harness's skill directory.
+- **[superpowers](https://github.com/obra/superpowers)**: provides `brainstorming`, `writing-plans`, and `subagent-driven-development`. Install on Claude Code with `claude plugin install obra/superpowers`; on Gemini CLI with `gemini extensions install obra/superpowers`; on Codex CLI via `/plugins` → search `superpowers` → Install Plugin.
+- **[frontend-design](https://github.com/anthropics/claude-code/tree/main/plugins/frontend-design)**: Anthropic's official skill for generating the Phase 2 mockup, shipped via the `claude-code-plugins` marketplace in `anthropics/claude-code`. Install on Claude Code with `claude plugin marketplace add anthropics/claude-code && claude plugin install frontend-design@claude-code-plugins`. For other harnesses, drop `plugins/frontend-design/skills/frontend-design/SKILL.md` into the harness's skill directory.
 
 Soft dependencies (skill degrades gracefully):
 
-- **A connected [Markup](https://markup.alego.cloud) instance** — for hosted mockups + comment iteration. Without it (env vars `MARKUP_URL`/`MARKUP_TOKEN` unset), the in-skill scripts skip network operations and the skill walks the user through manual equivalents. See `skills/design-feature/scripts/README.md` for the full env-var and OS-dispatch contract.
+- **A connected [Markup](https://markup.alego.cloud) instance**: for hosted mockups + comment iteration. Without it (env vars `MARKUP_URL`/`MARKUP_TOKEN` unset), the in-skill scripts skip network operations and the skill walks the user through manual equivalents. See `skills/design-feature/scripts/README.md` for the full env-var and OS-dispatch contract.
 - **Chrome MCP** (Claude for Chrome on Claude Code; `chrome-devtools-mcp` elsewhere). Without it, `design-feature` Phase 5 prints a manual checklist; `bootstrap-design-system` refuses to run unless the user opts into a code-only fallback.
 
 ### Compatibility
@@ -148,7 +148,7 @@ compat:
 |---|---|
 | v0.5.0 | 0.2.0 |
 
-At startup the skill invokes `./scripts/doctor.sh` (Unix) / `pwsh ./scripts/doctor.ps1` (Windows) to check Markup-server reachability and version against `compat.markup`. The server version is enforced with a soft degrade-with-warning so the offline flows remain available against an out-of-date server. `markup-cli` is no longer a dependency — see CHANGELOG (SP10, 2026-05-24).
+At startup the skill invokes `./scripts/doctor.sh` (Unix) / `pwsh ./scripts/doctor.ps1` (Windows) to check Markup-server reachability and version against `compat.markup`. The server version is enforced with a soft degrade-with-warning so the offline flows remain available against an out-of-date server. `markup-cli` is no longer a dependency (see CHANGELOG, SP10, 2026-05-24).
 
 ## Contributing
 
