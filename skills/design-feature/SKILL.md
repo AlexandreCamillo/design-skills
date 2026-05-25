@@ -9,7 +9,7 @@ compat:
 
 > **Convenção de idioma:** strings printadas/prompted ao usuário → PT-BR. Instruções ao agente → English.
 
-This skill orchestrates the end-to-end lifecycle of a user-visible feature, keeping the Design System and the code implementation rigorously in sync. It composes other skills (`brainstorming`, `frontend-design`, `writing-plans`) rather than replacing them.
+This skill orchestrates the end-to-end lifecycle of a user-visible feature, keeping the Design System and the code implementation rigorously in sync. It composes other skills (`brainstorming` and `writing-plans` from the **superpowers** plugin, plus `frontend-design` from Anthropic's official **frontend-design** plugin) rather than replacing them.
 
 ## Cross-harness tool reference
 
@@ -42,11 +42,18 @@ If no Chrome MCP server is registered on the current harness, the skill **skips 
 
 ### Sub-skill availability across harnesses
 
-This skill composes `brainstorming`, `frontend-design`, `writing-plans` from the **superpowers** plugin. Distribution today:
+This skill composes sub-skills from **two** upstream plugins:
 
-- **Claude Code**: install via `claude plugin install obra/superpowers` (loads `Skill` tool entries).
-- **Gemini CLI**: install via `gemini extensions install obra/superpowers` (exposes `activate_skill`).
-- **Codex CLI**: install via the official Codex plugin marketplace — run `/plugins` in-session, search for `superpowers`, and select **Install Plugin**. Fallback if the marketplace is unreachable: clone the repo and symlink it into the Codex skills directory (`gh repo clone obra/superpowers ~/.codex/superpowers && mkdir -p ~/.agents/skills && ln -s ~/.codex/superpowers/skills ~/.agents/skills/superpowers`, then restart Codex). (Verified 2026-05-23 — superpowers now ships a `.codex-plugin/` manifest; `skill-installer` is NOT a supported install path for Codex.)
+- **`brainstorming`, `writing-plans`, `subagent-driven-development`** — from the [**superpowers**](https://github.com/obra/superpowers) plugin (`obra/superpowers`).
+- **`frontend-design`** — from Anthropic's [**frontend-design**](https://github.com/anthropics/claude-code/tree/main/plugins/frontend-design) plugin, shipped via the `claude-code-plugins` marketplace in `anthropics/claude-code`. (Plugin manifest name: `frontend-design`. Often pre-installed on Claude Code.)
+
+Distribution per harness:
+
+| Harness | superpowers | frontend-design |
+|---|---|---|
+| **Claude Code** | `claude plugin install obra/superpowers` (loads `Skill` tool entries) | `claude plugin marketplace add anthropics/claude-code && claude plugin install frontend-design@claude-code-plugins` |
+| **Gemini CLI** | `gemini extensions install obra/superpowers` (exposes `activate_skill`) | No first-party extension; drop `plugins/frontend-design/skills/frontend-design/SKILL.md` into the Gemini skills dir |
+| **Codex CLI** | `/plugins` → search `superpowers` → Install Plugin (verified 2026-05-23; superpowers ships a `.codex-plugin/` manifest). Fallback: `gh repo clone obra/superpowers ~/.codex/superpowers && mkdir -p ~/.agents/skills && ln -s ~/.codex/superpowers/skills ~/.agents/skills/superpowers`, then restart Codex. (`skill-installer` is NOT a supported install path for Codex.) | No Codex package; clone `plugins/frontend-design/skills/frontend-design` from `anthropics/claude-code` into `~/.codex/skills/frontend-design`, then restart Codex |
 
 If a required sub-skill cannot be loaded, the Hard preconditions block below applies.
 
@@ -91,9 +98,15 @@ If either is unset when the skill starts, the very first `./scripts/doctor.sh` i
 
 This skill is a hard-fail wrapper unless the following are present:
 
-1. **superpowers plugin installed** — the skill calls `brainstorming`, `frontend-design`, `writing-plans` via the Skill tool. If any of these three skills are not loadable, abort with:
+1. **superpowers plugin installed** — the skill calls `brainstorming`, `writing-plans`, `subagent-driven-development` via the Skill tool. If any of these three skills are not loadable, abort with:
 
    > ❌ HARD: superpowers plugin not detected. Install: https://github.com/obra/superpowers
+
+   Do not perform any other action. Do not write files. Do not pretend to start.
+
+2. **frontend-design plugin installed** — the skill calls Anthropic's `frontend-design` skill via the Skill tool to generate the Phase 2 mockup. This is a **separate plugin** from superpowers, shipped by Anthropic in the `claude-code-plugins` marketplace at `anthropics/claude-code` (plugin path: `plugins/frontend-design`). If the `frontend-design` skill is not loadable, abort with:
+
+   > ❌ HARD: frontend-design plugin not detected. Install on Claude Code: `claude plugin marketplace add anthropics/claude-code && claude plugin install frontend-design@claude-code-plugins`. Other harnesses: see § "Sub-skill availability across harnesses".
 
    Do not perform any other action. Do not write files. Do not pretend to start.
 
@@ -124,6 +137,7 @@ After the hard check passes, detect optional dependencies and surface a one-bloc
 design-feature ready. Capability matrix:
 
   ✓ HARD: superpowers <version> detectado
+  ✓ HARD: frontend-design <version> detectado
   {env:             ✓ MARKUP_URL e MARKUP_TOKEN setados
                     |  ✗ MARKUP_URL e/ou MARKUP_TOKEN ausentes
                                                 ↳ setar antes de invocar a skill (export MARKUP_URL=…; export MARKUP_TOKEN=…)

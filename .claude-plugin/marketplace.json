@@ -1,6 +1,6 @@
 {
   "name": "design-skills",
-  "description": "Superpowers-compatible skills (design-feature, bootstrap-design-system) for the design-feature workflow.",
+  "description": "Skills (design-feature, bootstrap-design-system) for the design-feature workflow. Hard-depends on superpowers + Anthropic's frontend-design plugin.",
   "owner": {
     "name": "Alexandre Camillo",
     "email": "acamillo.goncalves@gmail.com"
@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "design-skills",
-      "description": "Superpowers-compatible skills that orchestrate the full feature workflow from idea-mockup through implementation parity. Composes brainstorming + frontend-design + writing-plans. Soft-depends on markup-cli.",
+      "description": "Skills that orchestrate the full feature workflow from idea-mockup through implementation parity. Composes brainstorming + writing-plans (superpowers) and frontend-design (Anthropic, claude-code-plugins marketplace).",
       "version": "0.6.0",
       "source": "./",
       "author": {
