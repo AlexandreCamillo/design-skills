@@ -14,11 +14,11 @@ You ask the agent for a new feature. The skill takes over.
 
 It **detects the framework + ecosystem** of the project (React + antd + react-hook-form, Vue + Vuetify, jQuery + Bootstrap, …) and asks you which strategy to use for the "Code API" of every component. That choice is persisted and binding for the rest of the feature. Greenfield projects (empty / no `package.json`) get a separate prompt to pick the stack manually.
 
-It then **brainstorms the design**. The agent's `brainstorming` skill writes a spec; `frontend-design` produces a single self-contained HTML mockup. Every meaningful design decision (variant, density, accent, copy variant, …) becomes a knob on a draggable tweaker panel inlined in the mockup. You iterate visually; the panel exports your locked choices as JSON.
+It then **brainstorms the design**. The `brainstorming` skill (from `superpowers`) writes a spec; the `frontend-design` skill (Anthropic's, from the `claude-code-plugins` marketplace) produces a single self-contained HTML mockup. Every meaningful design decision (variant, density, accent, copy variant, …) becomes a knob on a draggable tweaker panel inlined in the mockup. You iterate visually; the panel exports your locked choices as JSON.
 
 When you approve, it **promotes the mockup into a canonical DS file** under `docs/design/design-system/`, baking the locked choices as attributes/CSS-vars and reformatting the file to a pattern that includes a State decision matrix and a Code API section adapted to your strategy.
 
-Then it **plans + executes the implementation** via the agent's `writing-plans` + `subagent-driven-development` skills, with DS-file edits as first-class tasks.
+Then it **plans + executes the implementation** via `superpowers`'s `writing-plans` + `subagent-driven-development` skills, with DS-file edits as first-class tasks.
 
 Finally, it **QAs the live route against the DS file** via Chrome MCP — opening both side-by-side, applying the triggers from the State decision matrix, and reporting deltas until parity (or a documented exception).
 
@@ -132,7 +132,10 @@ Bundled templates the skills read at runtime:
 
 ## Dependencies
 
-Hard dependency: the **[superpowers](https://github.com/obra/superpowers)** plugin. The skills invoke `brainstorming`, `frontend-design`, and `writing-plans`. If superpowers is not detected, design-skills refuses to run.
+Hard dependencies — design-skills refuses to run if either is missing:
+
+- **[superpowers](https://github.com/obra/superpowers)** — provides `brainstorming`, `writing-plans`, and `subagent-driven-development`. Install on Claude Code with `claude plugin install obra/superpowers`; on Gemini CLI with `gemini extensions install obra/superpowers`; on Codex CLI via `/plugins` → search `superpowers` → Install Plugin.
+- **[frontend-design](https://github.com/anthropics/claude-code/tree/main/plugins/frontend-design)** — Anthropic's official skill for generating the Phase 2 mockup, shipped via the `claude-code-plugins` marketplace in `anthropics/claude-code`. Install on Claude Code with `claude plugin marketplace add anthropics/claude-code && claude plugin install frontend-design@claude-code-plugins`. For other harnesses, drop `plugins/frontend-design/skills/frontend-design/SKILL.md` into the harness's skill directory.
 
 Soft dependencies (skill degrades gracefully):
 
