@@ -9,7 +9,7 @@
     {
       "name": "design-skills",
       "description": "Skills that orchestrate the full feature workflow from idea-mockup through implementation parity. Composes brainstorming + writing-plans (superpowers) and frontend-design (Anthropic, claude-code-plugins marketplace).",
-      "version": "0.6.0",
+      "version": "0.6.1",
       "source": "./",
       "author": {
         "name": "Alexandre Camillo",
