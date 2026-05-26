@@ -1,4 +1,3 @@
-// docs/img-src/render.mjs
 // One-shot renderer for README image assets.
 //
 // Usage:
@@ -18,6 +17,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = resolve(__dirname, '../img');
 mkdirSync(OUT_DIR, { recursive: true });
 
+// width/height are CSS pixels at the page viewport; PNGs are 2x. Keep in
+// sync with the dimensions table in docs/img-src/README.md.
 const SOURCES = [
   { html: 'hero-before-after.html', png: 'hero-before-after.png', width: 830, height: 280 },
   { html: 'how-it-works.html',      png: 'how-it-works.png',      width: 840, height: 260 },
