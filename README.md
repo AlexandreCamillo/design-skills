@@ -11,8 +11,7 @@ A design loop for Claude Code, Codex, and Gemini CLI.
 
 </div>
 
-- **Catch UI decisions in design, not in review.** "Less padding", "softer accent", "different copy" — those round-trips belong in a mockup, not a PR comment.
-- **One mockup, every variant.** The tweaker panel exposes every design knob, so you compare alternatives in seconds — no regeneration required.
+- **One mockup, every variant.** The tweaker panel exposes every design knob ("less padding", "softer accent", "different copy"), so you compare alternatives in seconds — no regeneration, no PR-comment round-trips.
 - **The Design System is the contract.** Approved mockups become DS files. Implementation references them. Visual QA checks the live page against the same file.
 
 ## Quickstart
