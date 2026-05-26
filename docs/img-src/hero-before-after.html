@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>hero-before-after</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #fff; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: #1f2328;
+  }
+  .frame {
+    width: 830px;
+    height: 280px;
+    box-sizing: border-box;
+    padding: 0;
+    background: #fff;
+  }
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 56px 1fr;
+    height: 100%;
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .side { padding: 22px 24px; background: #fff; display: flex; flex-direction: column; }
+  .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #59636e;
+    letter-spacing: 0.6px;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .prompt {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    background: #f6f8fa;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    padding: 14px;
+    color: #1f2328;
+    line-height: 1.55;
+    flex: 1;
+  }
+  .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f6f8fa;
+    color: #59636e;
+    font-size: 22px;
+    border-left: 1px solid #d0d7de;
+    border-right: 1px solid #d0d7de;
+  }
+  .mockup {
+    flex: 1;
+    background: linear-gradient(180deg, #fafbfc 0%, #f0f3f6 100%);
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    padding: 12px;
+    position: relative;
+  }
+  .mockup .topbar { height: 10px; background: #6e7681; border-radius: 3px; margin-bottom: 10px; width: 42%; }
+  .mockup .row {
+    background: white;
+    border: 1px solid #d0d7de;
+    border-radius: 4px;
+    height: 36px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    gap: 8px;
+  }
+  .mockup .row .dot { width: 14px; height: 14px; border-radius: 50%; background: #d0d7de; }
+  .mockup .row .bar { height: 6px; background: #d0d7de; border-radius: 2px; flex: 1; }
+  .mockup .row .toggle { width: 28px; height: 14px; background: #0969da; border-radius: 7px; position: relative; }
+  .mockup .row .toggle::after { content: ''; position: absolute; right: 2px; top: 2px; width: 10px; height: 10px; border-radius: 50%; background: white; }
+  .mockup .btn {
+    background: #0969da;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 5px;
+    display: inline-block;
+    margin-top: 6px;
+  }
+  .tweaker {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #1f2328;
+    color: white;
+    font-size: 9px;
+    padding: 3px 7px;
+    border-radius: 3px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="split">
+      <div class="side">
+        <div class="label">You ask</div>
+        <div class="prompt">"Add a settings page with a theme toggle and notification preferences."</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="side">
+        <div class="label">You get a tweakable mockup</div>
+        <div class="mockup">
+          <div class="tweaker">tweaker</div>
+          <div class="topbar"></div>
+          <div class="row"><span class="dot"></span><span class="bar"></span><span class="toggle"></span></div>
+          <div class="row"><span class="dot"></span><span class="bar"></span><span class="toggle"></span></div>
+          <div class="row"><span class="dot"></span><span class="bar"></span><span class="toggle"></span></div>
+          <span class="btn">Save</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
