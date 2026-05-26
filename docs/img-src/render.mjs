@@ -10,7 +10,7 @@
 // Renders at deviceScaleFactor 2 so the PNG is retina-quality.
 
 import puppeteer from 'puppeteer';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, resolve } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
 
@@ -23,6 +23,7 @@ const SOURCES = [
   { html: 'how-it-works.html',      png: 'how-it-works.png',      width: 840, height: 260 },
 ];
 
+// --no-sandbox required in containerized / VPS environments (no user namespace)
 const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
 try {
   for (const s of SOURCES) {
@@ -33,8 +34,9 @@ try {
     }
     const page = await browser.newPage();
     await page.setViewport({ width: s.width, height: s.height, deviceScaleFactor: 2 });
-    await page.goto('file://' + srcPath, { waitUntil: 'networkidle0' });
+    await page.goto(pathToFileURL(srcPath).href, { waitUntil: 'networkidle0' });
     const outPath = resolve(OUT_DIR, s.png);
+    // omitBackground:false → render the page's own white background so PNGs look right on GitHub's light theme
     await page.screenshot({ path: outPath, omitBackground: false });
     console.log(`wrote ${outPath}`);
     await page.close();

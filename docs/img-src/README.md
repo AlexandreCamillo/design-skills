@@ -19,8 +19,8 @@ the project README. Each source renders to a single PNG in `../img/`.
 
 ## Output dimensions
 
-| Source                       | PNG output                  | Display size |
-|------------------------------|-----------------------------|--------------|
+| Source                       | PNG output                  | Viewport (CSS px) |
+|------------------------------|-----------------------------|-------------------|
 | `hero-before-after.html`     | `../img/hero-before-after.png` | 830×280  |
 | `how-it-works.html`          | `../img/how-it-works.png`      | 840×260  |
 
