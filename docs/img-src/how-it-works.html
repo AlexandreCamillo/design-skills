@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>how-it-works</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #fff; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; color: #1f2328; }
+  .frame {
+    width: 840px;
+    height: 260px;
+    border: 1px solid #d0d7de;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+  .panel {
+    padding: 18px 16px 16px 16px;
+    border-right: 1px solid #d0d7de;
+    background: #fff;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .panel:last-child { border-right: none; }
+  .step {
+    position: absolute;
+    top: 12px;
+    left: 14px;
+    background: #1f2328;
+    color: #fff;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .title {
+    font-size: 12px;
+    font-weight: 600;
+    margin: 4px 0 12px 32px;
+    color: #1f2328;
+    line-height: 1.3;
+  }
+  .body { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .bubble {
+    background: #f6f8fa;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    color: #1f2328;
+    line-height: 1.4;
+  }
+  .bubble.user { background: #ddf4ff; border-color: #b6e3ff; }
+  .mockup {
+    flex: 1;
+    background: linear-gradient(180deg, #fafbfc 0%, #f0f3f6 100%);
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    padding: 10px;
+    position: relative;
+  }
+  .mockup .topbar { height: 6px; background: #6e7681; border-radius: 2px; margin-bottom: 6px; width: 40%; }
+  .mockup .row { background: #fff; border: 1px solid #d0d7de; border-radius: 3px; height: 22px; margin-bottom: 5px; }
+  .mockup .tweaker {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: #1f2328;
+    color: #fff;
+    font-size: 8px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+  }
+  .code {
+    flex: 1;
+    background: #0d1117;
+    color: #adbac7;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px;
+    padding: 12px;
+    border-radius: 6px;
+    line-height: 1.5;
+  }
+  .code .kw  { color: #ff7b72; }
+  .code .str { color: #a5d6ff; }
+  .code .fn  { color: #d2a8ff; }
+</style>
+</head>
+<body>
+<div class="frame">
+
+  <div class="panel">
+    <div class="step">1</div>
+    <div class="title">Brainstorm UI + behavior</div>
+    <div class="body">
+      <div class="bubble user">"Settings page with theme toggle"</div>
+      <div class="bubble">Density? Accent? Empty state?</div>
+      <div class="bubble user">"Comfy, blue, friendly empty copy"</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="step">2</div>
+    <div class="title">Tweak the mockup</div>
+    <div class="body">
+      <div class="mockup">
+        <div class="tweaker">tweaker</div>
+        <div class="topbar"></div>
+        <div class="row"></div>
+        <div class="row"></div>
+        <div class="row"></div>
+        <div class="row"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="step">3</div>
+    <div class="title">Ship the code</div>
+    <div class="body">
+      <div class="code">
+<span class="kw">const</span> <span class="fn">Settings</span> = () =&gt; (<br>
+&nbsp;&nbsp;&lt;<span class="fn">Card</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;variant=<span class="str">"outline"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;density=<span class="str">"comfy"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;accent=<span class="str">"blue"</span><br>
+&nbsp;&nbsp;/&gt;<br>
+);
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
