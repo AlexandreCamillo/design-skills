@@ -1,154 +1,110 @@
+<div align="center">
+
 # design-skills
 
-Keep your **Design System and your code in sync** as you build features. design-skills is a pair of agent skills that wrap the loop your coding agent already runs (brainstorm, mockup, promote, plan, execute, QA), so the DS file and the implementation never drift apart.
+**Stop fixing the UI in PR review.**
+A design loop for Claude Code, Codex, and Gemini CLI.
+
+![version](https://img.shields.io/badge/version-0.6.1-blue) ![harness](https://img.shields.io/badge/Claude%20Code%20·%20Codex%20·%20Gemini-cross--harness-blue) ![license](https://img.shields.io/badge/license-MIT-green)
+
+![Before and after: a feature request becomes a tweakable mockup](docs/img/hero-before-after.png)
+
+</div>
+
+- **Catch UI decisions in design, not in review.** "Less padding", "softer accent", "different copy" — those round-trips belong in a mockup, not a PR comment.
+- **One mockup, every variant.** The tweaker panel exposes every design knob, so you compare alternatives in seconds — no regeneration required.
+- **The Design System is the contract.** Approved mockups become DS files. Implementation references them. Visual QA checks the live page against the same file.
 
 ## Quickstart
 
-Install design-skills in your harness: [Claude Code](#claude-code), [Codex CLI](#codex-cli), [Gemini CLI](#gemini-cli), [Other harnesses](#other-harnesses).
+Install design-skills in Claude Code:
 
-Then ask your agent to design or build a feature with a visible UI. The `design-feature` skill takes over from there.
+```bash
+claude plugin marketplace add AlexandreCamillo/design-skills
+claude plugin install design-skills
+```
+
+Restart Claude Code. Then ask your agent to design or build any feature with a visible UI — the `design-feature` skill takes over.
+
+Pin a tag with `AlexandreCamillo/design-skills@v0.6.1`.
+
+<details>
+<summary><b>Codex CLI</b></summary>
+
+```md
+Use skill-installer to install `design-feature` and `bootstrap-design-system` from https://github.com/AlexandreCamillo/design-skills
+```
+
+</details>
+
+<details>
+<summary><b>Gemini CLI</b></summary>
+
+```bash
+gemini extensions install AlexandreCamillo/design-skills
+```
+
+</details>
+
+<details>
+<summary><b>Other harnesses (OpenCode, Cursor, Copilot CLI, …)</b></summary>
+
+Each `SKILL.md` is plain Markdown with YAML frontmatter. Drop it wherever your harness loads skills. The cross-harness tool reference at the top of each `SKILL.md` covers Claude Code, Gemini CLI, and Codex CLI explicitly; for others, the model translates using your harness's own docs.
+
+</details>
 
 ## How it works
 
-You ask the agent for a new feature. The skill takes over.
+![How it works: brainstorm → tweak the mockup → ship the code](docs/img/how-it-works.png)
 
-It **detects the framework + ecosystem** of the project (React + antd + react-hook-form, Vue + Vuetify, jQuery + Bootstrap, …) and asks you which strategy to use for the "Code API" of every component. That choice is persisted and binding for the rest of the feature. Greenfield projects (empty / no `package.json`) get a separate prompt to pick the stack manually.
+**1. Brainstorm the UI, not just the code.**
+The skill runs a design-only conversation: what variants, what densities, what empty states, what error states. It produces a self-contained HTML mockup with a tweaker panel inlined — every meaningful decision becomes a knob.
 
-It then **brainstorms the design**. The `brainstorming` skill (from `superpowers`) writes a spec; the `frontend-design` skill (Anthropic's, from the `claude-code-plugins` marketplace) produces a single self-contained HTML mockup. Every meaningful design decision (variant, density, accent, copy variant, …) becomes a knob on a draggable tweaker panel inlined in the mockup. You iterate visually; the panel exports your locked choices as JSON.
+**2. Iterate by tweaking, not regenerating.**
+You flip variants, density, accent, copy directly on the mockup. The skill hosts it via [Markup](https://markup.alego.cloud) (comments, version history, DS components navigation) when configured, or falls back to the superpowers visual-companion for a quick view without that overhead. When you approve, locked choices get baked into a Design System file under `docs/design/design-system/`.
 
-When you approve, it **promotes the mockup into a canonical DS file** under `docs/design/design-system/`, baking the locked choices as attributes/CSS-vars and reformatting the file to a pattern that includes a State decision matrix and a Code API section adapted to your strategy.
+**3. Implement against the DS file. QA against the DS file.**
+A technical brainstorm + plan + execute follows, with DS edits as first-class tasks. After implementation, the skill drives Chrome to compare the live route to the DS file's state matrix and reports drift until parity (or a documented exception).
 
-Then it **plans + executes the implementation** via `superpowers`'s `writing-plans` + `subagent-driven-development` skills, with DS-file edits as first-class tasks.
+→ [See the full 6-phase workflow](docs/workflow.md)
 
-Finally, it **QAs the live route against the DS file** via Chrome MCP, opening both side-by-side, applying the triggers from the State decision matrix, and reporting deltas until parity (or a documented exception).
+## The two skills
 
-If a session ends mid-loop, the skill resumes from `.markup-design/scratch/<slug>/state.json` after a context reset.
+**[`design-feature`](./skills/design-feature/SKILL.md)** — Use when designing or building any feature with a visible UI. Drives the full design loop above. This is the primary entry point.
 
-For projects that already have shipped code, the **`bootstrap-design-system`** skill extracts a draft DS from the running UI before the design loop begins.
+**[`bootstrap-design-system`](./skills/bootstrap-design-system/SKILL.md)** — Use once on existing projects that already have shipped code. Extracts a draft Design System from the running UI so the design loop has a starting point.
 
-## Installation
+<details>
+<summary><b>Stack and dependencies</b></summary>
 
-Installation differs by harness. If you use more than one, install design-skills separately for each.
+design-skills orchestrates two existing skill plugins and one external service. It refuses to run without the two hard dependencies; soft dependencies degrade to manual flows.
 
-### Claude Code
+### Hard dependencies
 
-design-skills ships as a single-plugin marketplace.
+- **[superpowers](https://github.com/obra/superpowers)** — provides `brainstorming`, `writing-plans`, `subagent-driven-development`, and the visual-companion fallback.
+  - Claude Code: `claude plugin install obra/superpowers`
+  - Gemini CLI: `gemini extensions install obra/superpowers`
+  - Codex CLI: `/plugins` → search `superpowers` → Install Plugin
+- **[frontend-design](https://github.com/anthropics/claude-code/tree/main/plugins/frontend-design)** — Anthropic's official skill for the mockup generation, shipped via the `claude-code-plugins` marketplace.
+  - Claude Code: `claude plugin marketplace add anthropics/claude-code && claude plugin install frontend-design@claude-code-plugins`
+  - Other harnesses: drop `plugins/frontend-design/skills/frontend-design/SKILL.md` into the harness's skill directory.
 
-- Register the marketplace and install:
+### Soft dependencies (degrade gracefully)
 
-  ```bash
-  claude plugin marketplace add AlexandreCamillo/design-skills
-  claude plugin install design-skills
-  ```
-
-- Restart Claude Code. The skills appear in the available-skills list.
-
-- To pin a tag: `AlexandreCamillo/design-skills@v0.5.0`.
-
-### Codex CLI
-
-Codex ships a native `skill-installer` skill (from [`openai/skills`](https://github.com/openai/skills)).
-
-- Tell Codex in chat:
-  ```md
-  Use skill-installer to install `design-feature` and `bootstrap-design-system` from https://github.com/AlexandreCamillo/design-skills
-  ```
-
-### Gemini CLI
-
-- Install the extension:
-
-  ```bash
-  gemini extensions install AlexandreCamillo/design-skills
-  ```
-
-- The skills become discoverable via `activate_skill('design-feature')` and `activate_skill('bootstrap-design-system')`.
-
-### Other harnesses
-
-Each `SKILL.md` is plain Markdown with YAML frontmatter. Drop it wherever your harness loads skills (OpenCode, Cursor, Copilot CLI). The cross-harness tool reference at the top of each `SKILL.md` covers Claude Code, Gemini CLI, and Codex CLI explicitly; for others, the model translates using the harness's own docs.
-
-## Browser automation setup (per harness)
-
-Phase 5 visual QA in `design-feature` and Step C snapshot in `bootstrap-design-system` need the agent to drive a real browser. Each harness has its own preferred path.
-
-### Claude Code: Claude for Chrome extension (preferred)
-
-1. Install the [Claude for Chrome extension](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) (Chrome Web Store, v1.0.36+).
-2. Launch with `claude --chrome`, or run `/chrome` inside an existing session. Toggle "Enabled by default" if you want it always on (uses more context).
-3. The skill auto-detects tools under `mcp__claude-in-chrome__*` and uses them for Phase 5.
-
-Requires Claude Code 2.0.73+; Chrome or Edge (Brave/Arc/WSL not supported). Fallback for unsupported environments:
-
-```bash
-claude mcp add chrome-devtools npx chrome-devtools-mcp@latest
-```
-
-### Gemini CLI
-
-```bash
-gemini mcp add chrome-devtools npx chrome-devtools-mcp@latest
-```
-
-Gemini CLI v0.37+ also exposes a `@browser_agent` shortcut on top of the same server; the skill doesn't depend on it, but you can use it directly from the prompt.
-
-### Codex CLI
-
-```bash
-codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest
-```
-
-(Writes to `~/.codex/config.toml`.) Codex's own Chrome extension is currently a Codex-app-only feature and is not exposed to the CLI; `chrome-devtools-mcp` is the only path for the CLI today.
-
-## The 6-phase workflow
-
-1. **Discovery + framework + strategy.** Detect `package.json`, agent guidelines, project docs. Present a framework-aware strategy menu. Persist to `.markup-design/scratch/strategy.json`. Greenfield projects get a separate manual-pick prompt.
-2. **Design brainstorm + ideia mockup.** `brainstorming` (FASTPATH) + `frontend-design`. Mockup gets the bundled tweaker panel. Iterates via Markup comments or the companion server. Gate: user approves + pastes tweaker JSON.
-3. **Promote.** Bake locked tweaker choices into the mockup, strip the tweaker scaffolding, reformat into a DS file under `docs/design/design-system/`. Gate: `./scripts/promote.sh` exits 0 (DS file written + server upload confirmed).
-4. **Technical brainstorm.** `brainstorming` scoped to implementation, seeded with the DS files affected and the target code. Gate: tech spec approved + branch is not main/master.
-5. **Plan + execute.** `writing-plans` (DS edits as first-class tasks) + `subagent-driven-development`. Gate: tests pass + `verification-before-completion` invoked + any DS edits re-validated.
-6. **Visual + behavior QA.** Chrome MCP opens the live route + DS file side-by-side. Scenarios derive from the DS file's State decision matrix. Gate: zero drift or a documented exception.
-
-Each gate writes `state.json` so the workflow resumes cleanly after a context reset.
-
-## What's inside
-
-| Skill | Purpose |
-|---|---|
-| [`design-feature`](./skills/design-feature/SKILL.md) | The 6-phase workflow above. Use when designing or building a feature with a visible UI. |
-| [`bootstrap-design-system`](./skills/bootstrap-design-system/SKILL.md) | One-shot DS extraction from a running app's UI, for projects that already have code. |
-
-Bundled templates the skills read at runtime:
-
-- `templates/tweaker.html`: inlined into every ideia mockup; provides the draggable tweaker panel + Copy JSON button.
-- `templates/ds-component-pattern.md`: the pattern every DS file follows after promotion; includes a framework × strategy adaptation guide for the "Code API" section.
-
-## Dependencies
-
-Hard dependencies. design-skills refuses to run if either is missing:
-
-- **[superpowers](https://github.com/obra/superpowers)**: provides `brainstorming`, `writing-plans`, and `subagent-driven-development`. Install on Claude Code with `claude plugin install obra/superpowers`; on Gemini CLI with `gemini extensions install obra/superpowers`; on Codex CLI via `/plugins` → search `superpowers` → Install Plugin.
-- **[frontend-design](https://github.com/anthropics/claude-code/tree/main/plugins/frontend-design)**: Anthropic's official skill for generating the Phase 2 mockup, shipped via the `claude-code-plugins` marketplace in `anthropics/claude-code`. Install on Claude Code with `claude plugin marketplace add anthropics/claude-code && claude plugin install frontend-design@claude-code-plugins`. For other harnesses, drop `plugins/frontend-design/skills/frontend-design/SKILL.md` into the harness's skill directory.
-
-Soft dependencies (skill degrades gracefully):
-
-- **A connected [Markup](https://markup.alego.cloud) instance**: for hosted mockups + comment iteration. Without it (env vars `MARKUP_URL`/`MARKUP_TOKEN` unset), the in-skill scripts skip network operations and the skill walks the user through manual equivalents. See `skills/design-feature/scripts/README.md` for the full env-var and OS-dispatch contract.
-- **Chrome MCP** (Claude for Chrome on Claude Code; `chrome-devtools-mcp` elsewhere). Without it, `design-feature` Phase 5 prints a manual checklist; `bootstrap-design-system` refuses to run unless the user opts into a code-only fallback.
+- **[Markup](https://markup.alego.cloud)** instance — hosted mockups + comment iteration + DS components navigation. Without `MARKUP_URL`/`MARKUP_TOKEN`, the skill walks the user through manual equivalents and uses the superpowers visual-companion as a lightweight viewer (no comments, no history, no DS navigation). See `skills/design-feature/scripts/README.md` for the full env-var contract.
+- **Chrome MCP** — required for Phase 5 visual QA and `bootstrap-design-system`'s snapshot step.
+  - Claude Code: install [Claude for Chrome](https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn) and launch with `claude --chrome` (or `/chrome` in-session). Requires Claude Code 2.0.73+; Chrome or Edge.
+  - Fallback (any harness): `claude mcp add chrome-devtools npx chrome-devtools-mcp@latest`, `gemini mcp add chrome-devtools npx chrome-devtools-mcp@latest`, or `codex mcp add chrome-devtools -- npx chrome-devtools-mcp@latest`.
 
 ### Compatibility
 
-Each skill declares its minimum supported Markup server version in SKILL.md frontmatter:
-
-```yaml
-compat:
-  markup: ">=0.2.0"
-```
+Each skill declares its minimum supported Markup server version in `SKILL.md` frontmatter (`compat.markup`). At startup the skill invokes `./scripts/doctor.sh` (Unix) / `pwsh ./scripts/doctor.ps1` (Windows) to check Markup reachability and version; out-of-date servers degrade with a warning so offline flows remain available.
 
 | design-skills tag | Min Markup server |
 |---|---|
-| v0.5.0 | 0.2.0 |
+| v0.6.1 | 0.2.0 |
 
-At startup the skill invokes `./scripts/doctor.sh` (Unix) / `pwsh ./scripts/doctor.ps1` (Windows) to check Markup-server reachability and version against `compat.markup`. The server version is enforced with a soft degrade-with-warning so the offline flows remain available against an out-of-date server. `markup-cli` is no longer a dependency (see CHANGELOG, SP10, 2026-05-24).
+</details>
 
 ## Contributing
 
