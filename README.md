@@ -19,19 +19,19 @@ A design loop for Claude Code, Codex, and Gemini CLI.
 Install design-skills in Claude Code:
 
 ```bash
-claude plugin marketplace add AlexandreCamillo/design-skills
+claude plugin marketplace add alkg-cloud/design-skills
 claude plugin install design-skills
 ```
 
 Restart Claude Code. Then ask your agent to design or build any feature with a visible UI — the `design-feature` skill takes over.
 
-Pin a tag with `AlexandreCamillo/design-skills@v0.6.1`.
+Pin a tag with `alkg-cloud/design-skills@v0.6.1`.
 
 <details>
 <summary><b>Codex CLI</b></summary>
 
 ```md
-Use skill-installer to install `design-feature` and `bootstrap-design-system` from https://github.com/AlexandreCamillo/design-skills
+Use skill-installer to install `design-feature` and `bootstrap-design-system` from https://github.com/alkg-cloud/design-skills
 ```
 
 </details>
@@ -40,7 +40,7 @@ Use skill-installer to install `design-feature` and `bootstrap-design-system` fr
 <summary><b>Gemini CLI</b></summary>
 
 ```bash
-gemini extensions install AlexandreCamillo/design-skills
+gemini extensions install alkg-cloud/design-skills
 ```
 
 </details>
