@@ -7,8 +7,6 @@ A design loop for Claude Code, Codex, and Gemini CLI.
 
 ![version](https://img.shields.io/badge/version-0.6.1-blue) ![harness](https://img.shields.io/badge/Claude%20Code%20·%20Codex%20·%20Gemini-cross--harness-blue) ![license](https://img.shields.io/badge/license-MIT-green)
 
-![Before and after: a feature request becomes a tweakable mockup](docs/img/hero-before-after.png)
-
 </div>
 
 - **One mockup, every variant.** The tweaker panel exposes every design knob ("less padding", "softer accent", "different copy"), so you compare alternatives in seconds — no regeneration, no PR-comment round-trips.
@@ -53,8 +51,6 @@ Each `SKILL.md` is plain Markdown with YAML frontmatter. Drop it wherever your h
 </details>
 
 ## How it works
-
-![How it works: brainstorm → tweak the mockup → ship the code](docs/img/how-it-works.png)
 
 **1. Brainstorm the UI, not just the code.**
 The skill runs a design-only conversation: what variants, what densities, what empty states, what error states. It produces a self-contained HTML mockup with a tweaker panel inlined — every meaningful decision becomes a knob.
